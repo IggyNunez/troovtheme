@@ -1,0 +1,211 @@
+<sticky-header id="mainNavbar">
+  <nav class="nav navbar navbar-expand-xl">
+
+    <div class="d-flex justify-content-between justify-content-xl-start align-items-center w-100">
+      <!-- START Brand -->
+      <div class="brand order-2 order-xl-1">
+        {%- if section.settings.logo -%}
+        {%- assign img_url = section.settings.logo | img_url: '1x1' | replace: '_1x1.', '_{width}x.' -%}
+        <a href="/">
+          {%- assign image_width = section.settings.logo_max_width | default:section.settings.logo.width -%}
+          {%- assign image_height = image_width | divided_by:section.settings.logo.aspect_ratio | ceil -%}
+          {% capture image_size %}{{ image_width | escape }}x{% endcapture %}
+
+          <img src="{{ section.settings.logo | img_url: image_size }}"
+               class="logo"
+               width="{{ image_width }}" height="{{ image_height }}"
+               srcset="{{ section.settings.logo | img_url: image_size }} 1x, {{ section.settings.logo | img_url: image_size, scale: 2 }} 2x"
+               alt="{{ section.settings.logo.alt | default: shop.name }}"
+               >
+        </a>
+        {%- else -%}
+        <a href="/">{{ 'logo' | placeholder_svg_tag: 'placeholder-svg logo-svg' }}</a>
+        {%- endif -%}
+      </div>
+      <!-- END Brand -->
+      
+      <div class="menu flex-xl-fill order-1 order-xl-2">
+        <!-- START Collapse -->
+        <button class="navbar-toggler collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#mainNavbarCollapse" aria-controls="mainNavbarCollapse" aria-expanded="false" aria-label="Toggle navigation">
+          <div class="closed">{{ section.settings.icon_menu }}</div>
+          <div class="open"><img src="https://img.icons8.com/fluency-systems-regular/50/222222/delete-sign.png" class="icon icon-menu" width="20" height="20" /></div>
+        </button>
+
+        <div class="collapse navbar-collapse flex-xl-grow-0 order-4 order-xl-0" id="mainNavbarCollapse">
+          {% render 'site-nav' settings:settings, blocks:section.blocks %}
+        </div>
+        <!-- END Collapse -->
+      </div>
+      
+      <div class="navbar-secondary order-3">
+        <!-- START Right column -->
+        <ul class="navbar-nav">
+
+          {%- for block in section.blocks -%}
+            {% assign is_cart = false %}
+            {%- if block.settings.title contains 'Cart' -%}{% assign is_cart = true %}{%- endif -%}
+            <li class="nav-item{% if is_cart %} cart-mini{% endif %}{% if block.settings.show_mobile == false %} d-none d-lg-inline{% endif %}">
+              <a href="{{ block.settings.url }}" class="nav-link icon-link">
+                {{ block.settings.icon | default: block.settings.title }}
+              </a>
+            </li>
+          {%- endfor -%}
+        </ul>
+        <!-- END Right column -->
+      </div>
+    </div>
+  </nav>
+</sticky-header>
+
+{% stylesheet %}
+
+.brand a { padding:1rem 0.5rem; }
+
+.fixed-top.animate {
+  transition: transform 0.15s ease-out;
+}
+{% endstylesheet %}
+
+{% javascript %}
+  class StickyHeader extends HTMLElement {
+    constructor() {
+      super();
+    }
+
+    connectedCallback() {
+      this.header = document.getElementById('mainNavbar');
+      this.headerBounds = {};
+      this.currentScrollTop = 0;
+      this.preventReveal = false;
+ 
+      this.onScrollHandler = this.onScroll.bind(this);
+      this.hideHeaderOnScrollUp = () => this.preventReveal = true;
+
+      this.addEventListener('preventHeaderReveal', this.hideHeaderOnScrollUp);
+      window.addEventListener('scroll', this.onScrollHandler, false);
+
+      this.createObserver();
+    }
+
+    disconnectedCallback() {
+      this.removeEventListener('preventHeaderReveal', this.hideHeaderOnScrollUp);
+      window.removeEventListener('scroll', this.onScrollHandler);
+    }
+
+    createObserver() {
+      let observer = new IntersectionObserver((entries, observer) => {
+        this.headerBounds = entries[0].intersectionRect;
+        observer.disconnect();
+      });
+
+      observer.observe(this.header);
+    }
+
+    onScroll() {
+      const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+
+      if (scrollTop > this.currentScrollTop && scrollTop > this.headerBounds.bottom) {
+        requestAnimationFrame(this.hide.bind(this));
+      } else if (scrollTop < this.currentScrollTop && scrollTop > this.headerBounds.bottom) {
+        if (!this.preventReveal) {
+          requestAnimationFrame(this.reveal.bind(this));
+        } else {
+          window.clearTimeout(this.isScrolling);
+
+          this.isScrolling = setTimeout(() => {
+            this.preventReveal = false;
+          }, 66);
+
+          requestAnimationFrame(this.hide.bind(this));
+        }
+      } else if (scrollTop <= this.headerBounds.top) {
+        requestAnimationFrame(this.reset.bind(this));
+      }
+
+      this.currentScrollTop = scrollTop;
+    }
+
+    hide() {
+      this.header.classList.add('hide', 'fade');
+      this.header.classList.remove('show');
+    }
+
+    reveal() {
+      this.header.classList.add('fixed-top', 'fade', 'show');
+      this.header.classList.remove('hide');
+    }
+
+    reset() {
+      this.header.classList.remove('hide', 'fixed-top', 'show', 'fade');
+    }
+  }
+
+  customElements.define('sticky-header', StickyHeader);
+{% endjavascript %}
+
+{% schema %}
+  {
+  "name": "Header",
+  "settings": [
+    {
+      "type": "header",
+      "content": "Logo"
+    },
+    {
+      "type": "image_picker",
+      "id": "logo",
+      "label": "Logo image"
+    },
+    {
+      "type": "text",
+      "id": "logo_max_width",
+      "label": "Custom logo width (in pixels)",
+      "default": "100"
+    },
+    {
+      "type": "header",
+      "content": "Main Navigation"
+    },
+    {
+      "type": "link_list",
+      "id": "linklist_1",
+      "label": "Header Navigation"
+    },
+    {
+      "type": "text",
+      "id": "icon_menu",
+      "label": "Mobile Menu Icon",
+      "default": "<i class='fas fa-bars'></i>"
+    }
+  ],
+  "blocks": [
+    {
+    "type": "link",
+    "name": "Links",
+    "settings": [
+      {
+      "type": "text",
+      "id": "title",
+      "label": "Link Label"
+      },
+      {
+      "type": "text",
+      "id": "icon",
+      "label": "Link Icon"
+      },
+      {
+      "type": "url",
+      "id": "url",
+      "label": "Link URL"
+      },
+      {
+      "type": "checkbox",
+      "id": "show_mobile",
+      "label": "Show on mobile",
+      "default": true
+      }
+   	 ]
+    }
+  ]
+}
+{% endschema %}

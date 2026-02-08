@@ -1,0 +1,130 @@
+{%- assign new_comment = false -%}
+{% if comment and comment.created_at %}
+{%- assign new_comment = true -%}
+{%- assign new_comment_id = comment.id -%}
+{% endif %}
+
+{% if new_comment %}
+{%- assign duplicate_comment = false %}
+  {% for comment in article.comments %}
+{% if comment.id == new_comment_id %}
+{%- assign duplicate_comment = true %}
+      {% break %}
+{% endif %}
+{% endfor %}
+
+{% if duplicate_comment %}
+{%- assign number_of_comments = article.comments_count -%}
+{% else %}
+{%- assign number_of_comments = article.comments_count | plus: 1 -%}
+{% endif %}
+{% else %}
+{%- assign number_of_comments = article.comments_count -%}
+{% endif %}
+
+{% if blog.comments_enabled? %}
+<section>
+
+  <div class="container">
+
+    {% if number_of_comments > 0 %}
+    <hr />
+    <div class="row">
+      <div class="col">
+        <h4>{{ 'blogs.comments.comments_with_count' | t: count: number_of_comments }}</h4>
+
+        {% paginate article.comments by 5 %}
+
+        {% comment %}
+        #comments is required, it is used as an anchor link by Shopify.
+        {% endcomment %}
+        <div id="comments">
+
+          {% if new_comment %}
+          <p>
+            {% if blog.moderated? %}
+            {{ 'blogs.comments.success_moderated' | t }}
+            {% else %}
+            {{ 'blogs.comments.success' | t }}
+            {% endif %}
+          </p>
+          {% endif %}
+
+          <ul>
+            {% comment %}
+            If a comment was just submitted with no blank field, show it.
+            {% endcomment %}
+            {% if new_comment %}
+            <li id="{{ comment.id }}">
+              {% render 'comment' %}
+            </li>
+            {% endif %}
+
+            {% for comment in article.comments %}
+            {% unless comment.id == new_comment_id %}
+            <li id="{{ comment.id }}">
+              {% render 'comment' %}
+            </li>
+            {% endunless %}
+            {% endfor %}
+          </ul>
+
+          {% if paginate.pages > 1 %}
+          {% render 'pagination', paginate:paginate %}
+          {% endif %}
+
+        </div>
+        {% endpaginate %}
+      </div>
+    </div>
+    {% endif %}
+
+    <hr />
+
+    <div class="card">
+      <div class="card-body">
+
+        <h3 class="card-title">{{ 'blogs.comments.title' | t }}</h3>
+
+        {% form 'new_comment', article %}
+
+        {{ form.errors | default_errors }}
+
+        <div class="form-group">
+          <label for="CommentAuthor">{{ 'blogs.comments.name' | t }}</label>
+          <input type="text" name="comment[author]" value="{{ form.author }}" class="form-control{% if form.errors contains 'author' %} is-invalid{% endif %}" id="CommentAuthor">
+        </div>
+
+        <div class="form-group">
+          <label for="CommentEmail">{{ 'blogs.comments.email' | t }}</label>
+          <input type="email" name="comment[email]" value="{{ form.email }}" class="form-control{% if form.errors contains 'email' %} is-invalid{% endif %}" id="CommentEmail">
+        </div>  
+
+        <div class="form-group">
+          <label for="CommentBody">{{ 'blogs.comments.message' | t }}</label>
+          <textarea name="comment[body]" value="{{ form.body }}" class="form-control{% if form.errors contains 'body' %} is-invalid{% endif %}" id="CommentBody">{{ form.body }}</textarea>
+        </div> 
+
+        <button class="btn btn-primary" type="submit">{{ 'blogs.comments.post' | t }}</button>
+
+        {% endform %}
+      </div>
+
+      {% if blog.moderated? %}
+      <div class="card-footer text-muted font-italic">
+        {{ 'blogs.comments.moderated' | t }}
+      </div>
+      {% endif %}
+
+    </div>
+
+  </div>
+</section>
+{% endif %}
+
+{% schema %}
+  {
+    "name": "Article Comments",
+    "settings": []
+  }
+{% endschema %}

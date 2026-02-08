@@ -1,0 +1,68 @@
+{%- if item.properties.shipping_interval_unit_type and item.properties.shipping_interval_frequency -%} 
+{% assign is_subscription = true %}
+{%- endif -%}
+
+<div class="d-flex cart-item" id="cart-item-{{ item.variant_id }}"{% if is_subscription %} data-is-subscription="true"{% endif %}>
+ 
+   <div class="item-image">
+     <a href="{{ item.url | within: collection }}">
+       {%- if item.image != blank -%}
+       <img class="lazyload" src="{{ item.image | img_url: '200x' }}" width="200" height="200" alt="{{ item.product.title }}">
+       {%- else -%}
+       {% capture current %}{% cycle 1, 2, 3, 4, 5, 6 %}{% endcapture %}
+       {{ 'product-' | append: current | placeholder_svg_tag: 'placeholder-svg img-fluid' }}
+       {%- endif -%}
+     </a>
+  </div>
+
+  <div class="item-body flex-fill">
+    
+    <a href="{{ item.url | within: collection }}"><h6 class="title">{{ item.product.title }}</h6></a>
+    <div class="text-muted">
+      {%- unless item.variant.title contains 'Default' -%}
+      <p>{%- for option in item.product.options -%}<span>{{ item.variant.options[forloop.index0] }}</span><br/>{%- endfor -%}</p>
+      {%- endunless -%}
+      {%- if item.properties.shipping_interval_unit_type and item.properties.shipping_interval_frequency -%}
+      <p class="rc_cart__selling-plan item-selling-plan">Every {{ item.properties.shipping_interval_frequency }} {{ item.properties.shipping_interval_unit_type | lowercase }}</p>
+      {% elsif item.selling_plan_allocation.selling_plan.name %}
+      <p class="rc_cart__selling-plan item-selling-plan">
+          {{ item.selling_plan_allocation.selling_plan.name }}
+          {%- if item.selling_plan_allocation.selling_plan.price_adjustments.size > 0 -%}
+          , save
+          {% endif %}
+          {% for price_adjustment in item.selling_plan_allocation.selling_plan.price_adjustments %}
+          {% if price_adjustment.value %}
+          {% if price_adjustment.value_type == 'percentage' %}
+          {{ price_adjustment.value }}%
+          {% else %}
+          {{ price_adjustment.value | money }}
+          {% endif %}
+          on each order
+          {% endif %}
+          {% endfor %}
+      </p>
+      {% endif %}
+      {%- if item.variant.inventory_quantity < 1 and item.variant.inventory_policy == "continue" and item.product.metafields["global"]["backorder"] != blank -%}
+      <div class="mb-3 backorder">{{ item.product.metafields["global"]["backorder"] }}</div>
+      {%- endif -%}
+    </div>
+
+    <div class="d-flex gap-2 justify-content-between">
+      <div>
+        <div class="input-quantity">
+          <label for="quantity-{{item.id}}" class="mr-2 d-none" aria-label="{{ 'cart.label.quantity' | t }}">{{ 'cart.label.quantity' | t }}</label>
+          <input class="form-control" id="quantity-{{item.id}}" data-variant-id="{{item.id}}" data-variant-original-price="{{ item.variant.compare_at_price }}" data-variant-price="{{ item.variant.price }}" type="number" name="updates[]" value="{{ item.quantity }}" min="1" pattern="[0-9]*" {% if item.product.tags contains 'free' %}readonly{% else %}quantity-select{% endif %}>
+        </div>
+        <a class="text-secondary" remove-from-cart data-product-id="{{ item.product_id }}" data-variant-id="{{ item.id }}"><small>{{ 'cart.general.remove' | t }}</small></a>
+      </div>
+      <div class="text-end">
+        {% if item.original_price > item.line_price %}<p class="original-price" item-original-price>{{ item.original_price | money }}</p>{% endif %}
+        <p class="price" item-price>{{ item.line_price | money }}</p>
+        {% for discount in item.discounts %}
+        <div class="badge badge-info">{{ discount.title }}</div>
+        {% endfor %}
+        
+      </div>
+    </div>
+  </div>
+</div>

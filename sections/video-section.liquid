@@ -1,0 +1,70 @@
+{% schema %}
+{
+  "name": "Video Section",
+  "settings": [  {
+        "type": "header",
+        "content": "Background"
+      },
+      {
+        "type": "checkbox",
+        "id": "fluid_section",
+        "label": "Borderless container",
+        "default": true
+      },
+    {
+      "type": "text",
+      "id": "video_url",
+      "label": "Video URL",
+      "default": "https://example.com/video.mp4"
+    },
+    {
+      "type": "select",
+      "id": "aspect_ratio",
+      "label": "Aspect Ratio",
+      "options": [
+        {"value": "16_9", "label": "16:9"},
+        {"value": "9_16", "label": "9:16"}
+      ],
+      "default": "16_9"
+    },
+    {
+      "type": "range",
+      "id": "border_radius",
+      "label": "Border Radius",
+      "min": 0,
+      "max": 50,
+      "step": 1,
+      "unit": "px",
+      "default": 0
+    }
+  ]
+}
+{% endschema %}
+
+{% stylesheet %}
+.video-container {
+  position: relative;
+  width: 100%;
+  padding-bottom: calc(100% * {{ section.settings.aspect_ratio == '16_9' ? 9/16 : 16/9 }});
+  border-radius: {{ section.settings.border_radius }}px;
+  overflow: hidden;
+}
+.video-container video {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+}
+{% endstylesheet %}
+
+{% javascript %}
+document.addEventListener("DOMContentLoaded", function() {
+  var video = document.querySelector('.video-container video');
+  video.src = '{{ section.settings.video_url }}';
+});
+{% endjavascript %}
+
+<div class="video-container">
+  <video controls></video>
+</div>

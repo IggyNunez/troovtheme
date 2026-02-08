@@ -1,0 +1,29 @@
+<div class="card article {{ blog.handle }}">
+  {% if article.image %}
+  {% capture img_id %}ArticleImage-{{ article.image.id }}{% endcapture %}
+  {%- assign img_url = article.image | img_url: '1x1' | replace: '_1x1.', '_{width}x.' -%}
+
+  <a href="{{ article.url }}">
+    <img class="card-img-top img-fluid lazyload" data-src="{{ article.image | img_url: '400x' }}"  alt="{{ article.image.alt | escape }}"src="{{ img_url }}">
+  </a>
+
+  {% endif %}
+  <div class="card-body">
+    <a href="{{ article.url }}"><h4>{{ article.title }}</h4></a>
+
+    {%- if section.settings.blog_show_date or section.settings.blog_show_author -%}
+    <p>
+    {%- if section.settings.blog_show_date -%}
+    <span class="blog-date">{{ 'blogs.article.published_at' | t: published_at:article.published_at | time_tag: '%B %Y' }}</span>
+    {%- endif -%}
+    {%- if section.settings.blog_show_author and article.author != blank -%}
+    <span class="blog-author">{{ 'blogs.article.by_author' | t: author: article.author }}</span>
+    {%- endif -%}
+    </p>
+    {%- endif -%}
+
+    {%- if article.excerpt.size > 10 -%}<div class="card-text">{{ article.excerpt | strip_html }}</div>{%- endif -%}
+    <a href="{{ article.url }}" class="btn btn-outline-primary btn-sm">{{ 'blogs.article.read_more' | t }}</a>
+
+  </div>
+</div>

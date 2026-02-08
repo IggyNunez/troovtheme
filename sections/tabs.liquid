@@ -1,0 +1,209 @@
+<style>
+  {%- unless section.settings.color_bg == "rgba(0,0,0,0)" -%}#section-{{ section.id }} {  background-color: {{ section.settings.color_bg }}!important; }{%- endunless -%}
+  {%- unless section.settings.color_title == "rgba(0,0,0,0)" -%}#section-{{ section.id }} .title { color: {{ section.settings.color_title }};  }{%- endunless -%}
+  {%- unless section.settings.color_body  == "rgba(0,0,0,0)" -%}#section-{{ section.id }} p { color: {{ section.settings.color_body }};  }{%- endunless -%}
+</style>
+
+<section class="tabs" id="section-{{ section.id }}">
+  <div class="container{% if section.settings.fluid_section %}-fluid{% endif %} {{ section.settings.alignment }}">
+    
+    {% if section.settings.title != blank or section.settings.description != blank %}
+    <div class="content header">
+      {%- if section.settings.title != blank -%}
+      <{{ section.settings.header_tag }} class="title">{{ section.settings.title | escape }}</{{ hsection.settings.header_tag }}>
+        {%- endif -%}
+
+        {%- if section.settings.description != blank -%}
+        {{ section.settings.description }}
+    	{%- endif -%}
+  	</div>
+  	{%- endif -%}
+    
+      <div class="content">
+
+        <ul class="nav nav-tabs" id="tabs-{{ section.id }}" role="tablist">
+          {%- for block in section.blocks -%}
+          <li class="nav-item" role="presentation">
+            <button class="nav-link{% if forloop.index0 == 0 %} active{% endif %}" id="tab-{{ block.id }}" data-bs-toggle="tab" data-bs-target="#tab-content-{{ block.id }}" type="button" role="tab" aria-controls="tab-content-{{ block.id }}" aria-selected="{% if forloop.index0 == 0 %}true{% else %}false{% endif %}">
+              {%- if block.settings.tab_image != blank -%}
+              <img data-src="{{ block.settings.tab_image | img_url:'120x120', crop: 'center' }}" width="120" height="120" class="lazyload" alt="{{ block.settings.title }}" title="{{ block.settings.title }}" />
+              {%- endif -%}
+              {{ block.settings.title }}
+            </button>
+          </li>
+          {%- endfor -%}
+        </ul>
+        <div class="tab-content" id="tabs-{{ section.id }}-content">
+          {%- for block in section.blocks -%}
+          <div class="tab-pane fade{% if forloop.index0 == 0 %} show active{% endif %}" id="tab-content-{{ block.id }}" role="tabpanel" aria-labelledby="tab-{{ block.id }}">
+            {% case block.type %}
+              {%- when 'video' -%}
+              {% render 'video-player', video_url: block.settings.video_url, size: block.settings.aspect_ratio %}
+
+            {% endcase %}
+          </div>
+          {%- endfor -%}
+        </div>
+
+      </div>
+      
+  </div>
+</section>
+
+{% schema %}
+  {
+    "name": "Tabs",
+    "settings": [
+      {
+        "type": "checkbox",
+        "id": "fluid_section",
+        "label": "Borderless container",
+        "default": true
+      },
+      {
+      	"type": "color",
+      	"id": "color_bg",
+      	"label": "Background color",
+      	"default": "rgba(0,0,0,0)"
+      },
+      {
+        "type": "text",
+        "id": "anchor_id",
+        "label": "Section Anchor ID"
+      },
+      {
+        "type": "text",
+        "id": "class",
+        "label": "Custom class"
+      },
+      {
+        "type": "header",
+        "content": "Header"
+      },
+      {
+        "type": "select",
+        "id": "alignment",
+        "label": "Alignment",
+        "default": "",
+        "options": [
+          { "value": "text-center", "label": "Center" },
+          { "value": "", "label": "Left" },
+          { "value": "text-end", "label": "Right" }
+        ]
+      },
+      {
+        "type": "html",
+        "id": "title",
+        "label": "Title"
+      },
+      {
+        "type": "select",
+        "id": "header_tag",
+        "label": "Title Tag Type",
+        "default": "h2",
+        "options": [ 
+		  { "value": "h1", "label": "h1" },
+          { "value": "h2", "label": "h2" },
+          { "value": "h3", "label": "h3" },
+          { "value": "h4", "label": "h4" }
+        ]
+      },
+      {
+        "type": "color",
+        "id": "color_title",
+        "label": "Title color",
+        "default": "rgba(0,0,0,0)"
+      },
+      {
+        "type": "html",
+        "id": "description",
+        "label": "Body"
+      },
+      {
+        "type": "color",
+        "id": "color_body",
+        "label": "Body color",
+        "default": "rgba(0,0,0,0)"
+      },
+      {
+        "type": "header",
+        "content": "Button"
+      },
+      {
+        "type": "url",
+        "id": "cta_link",
+        "label": "Button Link",
+        "info": "Button will only show if a link is assigned"
+      },
+      {
+        "type": "text",
+        "id": "cta_label",
+        "label": "Button Label",
+        "default": "Get this thing"
+      },
+      {
+         "type": "select",
+         "id": "button_theme",
+		 "label": "Button Style",
+         "options": [
+            { "value": "btn-primary", "label": "Primary"},
+			{ "value": "btn-outline-primary", "label": "Primary Outline"},
+            { "value": "btn-secondary", "label": "Secondary"},
+			{ "value": "btn-outline-secondary", "label": "Secondary Outline"}
+         ],
+		 "default": "btn-primary"
+      },
+      {
+         "type": "select",
+         "id": "button_size",
+		 "label": "Button Size",
+         "options": [
+            { "value": "", "label": "Normal"},
+			{ "value": "btn-lg", "label": "Large"},
+            { "value": "btn-sm", "label": "Small"}
+         ],
+         "default": ""
+      }
+    ],
+    "blocks": [
+       {
+        "type": "video",
+        "name": "Video",
+        "settings": [
+          {
+            "type": "text",
+            "id": "title",
+            "label": "Tab Title"
+          },
+          {
+            "type": "image_picker",
+            "id": "tab_image",
+            "label": "Tab Image",
+  			"info": "120x120"
+          },
+          {
+            "type": "text",
+            "id": "video_url",
+            "label": "Video URL"
+          },
+          {
+            "type": "select",
+            "id": "aspect_ratio",
+            "label": "Aspect Ratio",
+            "default": "16x9",
+            "options": [ 
+              { "value": "1x1", "label": "1x1" },
+              { "value": "16x9", "label": "16x9" },
+              { "value": "4x3", "label": "4x3" }
+            ]
+          }
+        ]
+       }
+    ],
+    "presets": [
+      {
+        "name": "Tabs"
+      }
+    ]
+  }
+{% endschema %}

@@ -1,0 +1,379 @@
+<style>
+  {%- unless section.settings.color_background == "rgba(0,0,0,0)" -%}#section-{{ section.id }} {  background: {{ section.settings.color_background }}!important; }{%- endunless -%}
+  {%- unless section.settings.color_title == "rgba(0,0,0,0)" -%}#section-{{ section.id }} .d-flex .title,  #section-{{ section.id }} .d-flex .title *, #section-{{ section.id }} .breadcrumb-item *, #section-{{ section.id }} .breadcrumb-item:before { color: {{ section.settings.color_title }};  }{%- endunless -%}
+  {%- unless section.settings.color_body  == "rgba(0,0,0,0)" -%}#section-{{ section.id }} .d-flex div.lead, #section-{{ section.id }} .d-flex div.lead * { color: {{ section.settings.color_body }}!important;  }{%- endunless -%}
+  {%- unless section.settings.color_pretitle  == "rgba(0,0,0,0)" -%}#section-{{ section.id }} .pre-title, #section-{{ section.id }} .pre-title p { color: {{ section.settings.color_pretitle }}!important;  }{%- endunless -%}  
+  {%- unless section.settings.content_bg == "rgba(0,0,0,0)" -%}#section-{{ section.id }} .d-flex > div > div {  background: {{ section.settings.content_bg | color_modify: 'alpha', 0.6 }}!important; }{%- endunless -%}
+
+  {% unless section.settings.content_width == 100 %}
+  @media only screen and (min-width: 1301px) {
+    #section-{{ section.id }} .d-flex > div { width:{{section.settings.content_width | append:'%' }}; }
+  }
+  @media only screen and (max-width: 1300px) {
+    #section-{{ section.id }} .d-flex > div { width:60%; }
+  }
+  @media only screen and (max-width: 968px) {
+    #section-{{ section.id }} .d-flex > div { width:100%!important; }
+  }
+  {% endunless %}
+  
+  {%- for block in section.blocks -%}
+    {%- unless block.settings.color_text  == "rgba(0,0,0,0)" -%}#block-{{block.id}} .text, #block-{{block.id}} .text *{ color:{{ block.settings.color_text }}!important; }{%- endunless -%}
+  {%- endfor -%}
+  .anchor-point {
+  position: absolute;
+  top: -80px; /* Adjust based on your header height */
+  visibility: hidden;
+}
+</style>
+
+<section class="banner" id="section-{{ section.id }}">
+  {%- if section.settings.anchor_id != blank -%}
+    <span id="{{ section.settings.anchor_id }}" class="anchor-point"></span>
+  {%- endif -%}
+  <div class="container{%- if section.settings.fluid_section -%}-fluid{%- endif -%}">
+    <div class="card">
+      {%- if section.settings.video_url != blank or section.settings.image != blank -%}
+      <div class="card-img-container">
+        {%- if section.settings.video_url != blank -%}
+          {% render 'video-player', video_url: section.settings.video_url, title: section.settings.title, size: '16x9' %}
+        {%- else -%}
+          {%- assign image_title = section.settings.image.alt | default: section.settings.title -%}
+          {%- assign image_width = section.settings.image.width -%}
+          {%- if section.settings.image_desktop_height > 0 -%}
+            {%- assign image_height = section.settings.image_desktop_height | ceil -%}
+          {%- else -%}
+            {%- assign image_height = image_width | divided_by:section.settings.image.aspect_ratio | ceil -%}
+          {%- endif -%}
+          <picture>
+            <source media="(max-width: 400px)" srcset="{{ section.settings.image_xs | default:section.settings.image | image_url: width: 400, format:'pjpg' }}">      
+            <source media="(max-width: 576px)" srcset="{{ section.settings.image_xs | default:section.settings.image | image_url: width: 600, format:'pjpg' }}">
+            <source media="(max-width: 992px)" srcset="{{ section.settings.image | image_url: width: 990, format:'pjpg' }}">
+            <source media="(max-width: 1200px)" srcset="{{ section.settings.image | image_url: width: 1200, format:'pjpg' }}">
+            <img data-src="{{ section.settings.image | image_url: width: image_width, height:image_height, format:'pjpg', crop:"center" }}" class="img-fluid lazyload" width="{{ image_width }}" height="{{ image_height }}" alt="{{ image_title }}" title="{{ image_title }}">
+          </picture>
+        {%- endif -%}
+      </div>
+      {%- endif -%}
+      
+      {% if section.blocks %}
+
+      <div class="d-flex {{ section.settings.v_align }} {{ section.settings.h_align }}{% if section.settings.video_url != blank or section.settings.image != blank %} card-img-overlay{% if section.settings.video_url != blank %} video-overlay{% endif %}{% endif %}">
+        <div class="{{ section.settings.padding | prepend:"p-" }} {{ section.settings.content_alignment }}">
+          
+          {%- for block in section.blocks -%}
+          <div id="block-{{ block.id }}" class="{{ block.settings.padding | prepend:"py-" }}">
+            {%- case block.type -%}
+
+              {%- when 'text' -%}
+          		<{{ block.settings.type}} class="text {{ block.settings.title_display }}"> {{ block.settings.copy }} </{{ block.settings.type}}>
+                   
+              {%- when 'button' -%}
+                <a class="btn {{ block.settings.theme }} {{ block.settings.size }}" href="{{ block.settings.link }}">{{ block.settings.label }}</a>
+              {%- when 'breadcrumbs' -%}
+                {% render 'breadcrumbs' %}
+              {%- when 'html' -%}
+                 {{ block.settings.html }}
+          
+          	  {%- when 'rating' -%}
+				{% if block.settings.product %}
+                  {% assign product = all_products[block.settings.product] %}
+                  <span 
+                        class="stamped-product-reviews-badge" 
+                        data-id="{{ product.id }}"
+                        data-product-sku="{{ product.handle }}" 
+                        data-product-type="{{product.type}}" 
+                        data-product-title="{{product.title}}" 
+                        style="display:block;">
+                    {{product.metafields.stamped.badge}}
+                  </span>
+          		{% else %}
+                  <div class="stamped-product-reviews-badge">
+                    <div id="stamped-reviews-widget" data-widget-type="site-badge" data-badge-type="minimal" data-color-stars="#ec5d44" data-star-size="20" data-title-size="20" data-title="reviews"></div>
+                  </div>
+                {% endif %}
+
+              {%- endcase -%}
+                                                                                                                    
+          </div>
+         {%- endfor -%}
+                                                                                                                    
+        </div>
+      </div>
+    {% endif %}
+    
+    </div>
+
+  </div>
+</section>
+
+
+{% schema %}
+  {
+    "name": "Banner",
+    "settings": [
+      {
+        "type": "header",
+        "content": "Background"
+      },
+      {
+        "type": "checkbox",
+        "id": "fluid_section",
+        "label": "Borderless container",
+        "default": true
+      },
+      {
+      	"type": "color_background",
+      	"id": "color_background",
+      	"label": "Background color",
+      	"default": "rgba(0,0,0,0)"
+      },
+      {
+        "type": "text",
+        "id": "anchor_id",
+        "label": "Section Anchor ID"
+      },
+      {
+        "type": "text",
+        "id": "metafield_override",
+        "label": "Metafield Override"
+      },
+      {
+        "type": "text",
+        "id": "class",
+        "label": "Custom class"
+      },
+      {
+        "type": "header",
+        "content": "Image/Video"
+      },
+      {
+        "type": "image_picker",
+        "id": "image",
+        "label": "Background image (optional)",
+        "info": "Recommend 16:9 ratio at 3200px width"
+      },
+      {
+        "type": "range",
+        "id": "image_desktop_height",
+        "label": "Desktop max height",
+        "min": 0,
+        "max": 1400,
+        "step": 50,
+        "default": 0,
+        "info": "set to 0 for no max height"
+      },
+      {
+        "type": "image_picker",
+        "id": "image_xs",
+        "label": "Mobile Banner",
+        "info": "Recommend 1:1 or 3:4 ratio at 2400px width"
+      },
+      {
+        "type": "text",
+        "id": "video_url",
+        "label": "Video URL",
+        "info": "If a video is added, it will overwrite the images. Use complete URL if hosted or Embed URL if Youtube/Vimeo."
+      },
+      {
+        "type": "header",
+        "content": "Content"
+      },
+      {
+      	"type": "color",
+      	"id": "content_bg",
+      	"label": "Background color",
+      	"default": "rgba(0,0,0,0)"
+      },
+      {
+        "type": "range",
+        "id": "padding",
+        "label": "Section Padding",
+        "min": 0,
+        "max": 7,
+        "step": 1,
+        "default": 0
+      },
+      {
+        "type": "select",
+        "id": "v_align",
+        "label": "Vertical align",
+        "default": "align-items-center",
+        "options": [
+          { "value": "align-items-start", "label": "Top" },
+          { "value": "align-items-center", "label": "Middle" },
+          { "value": "align-items-end", "label": "Bottom" }
+        ]
+	  },
+      {
+        "type": "select",
+        "id": "h_align",
+        "label": "Horizontal align",
+        "default": "justify-content-center text-center",
+        "options": [
+          { "value": "justify-content-start", "label": "Left" },
+          { "value": "justify-content-center text-center", "label": "Center" },
+          { "value": " justify-content-end text-right", "label": "Right" }
+        ]
+	  },
+      {
+        "type": "range",
+        "id": "content_width",
+        "label": "Content width",
+        "min": 25,
+        "max": 100,
+        "step": 5,
+        "unit": "%",
+        "default": 50
+      },
+      {
+        "type": "select",
+        "id": "content_alignment",
+        "label": "Content alignment",
+        "default": "",
+        "options": [
+          { "value": "", "label": "Left" },
+          { "value": "text-center", "label": "Center" },
+          { "value": "text-end", "label": "Right" }
+        ]
+	  }
+    ],
+   "blocks": [
+      {
+        "type": "text",
+        "name": "Text",
+        "settings": [
+          {
+            "type": "range",
+            "id": "padding",
+            "label": "Padding",
+            "min": 0,
+            "max": 7,
+            "step": 1,
+            "default": 1
+          },
+          {
+            "type": "html",
+            "id": "copy",
+            "label": "Text"
+          },
+          {
+            "type": "select",
+            "id": "type",
+            "label": "Copy Type",
+            "default": "div",
+            "options": [ 
+              { "value": "h1", "label": "h1" },
+              { "value": "h2", "label": "h2" },
+              { "value": "h3", "label": "h3" },
+              { "value": "h4", "label": "h4" },
+              { "value": "div", "label": "p" }
+            ]
+          },
+          {
+            "type": "select",
+            "id": "title_display",
+            "label": "Make Display Title",
+            "default": "",
+            "options": [ 
+              { "value": "", "label": "No" },
+              { "value": "display-1", "label": "Display 1" },
+              { "value": "display-2", "label": "Display 2" },
+              { "value": "display-3", "label": "Display 3" },
+              { "value": "display-4", "label": "Display 4" }
+            ]
+          },
+          {
+            "type": "color",
+            "id": "color_text",
+            "label": "Text color",
+            "default": "rgba(0,0,0,0)"
+          }
+        ]
+      },
+      {
+        "type": "button",
+        "name": "Button",
+        "settings": [
+          {
+            "type": "url",
+            "id": "link",
+            "label": "Link",
+            "info": "Button will only show if a link is assigned"
+          },
+          {
+            "type": "text",
+            "id": "label",
+            "label": "Label"
+          },
+          {
+             "type": "select",
+             "id": "theme",
+             "label": "Style",
+             "options": [
+                { "value": "btn-primary", "label": "Primary"},
+                { "value": "btn-outline-primary", "label": "Primary Outline"},
+                { "value": "btn-secondary", "label": "Secondary"},
+                { "value": "btn-outline-secondary", "label": "Secondary Outline"},
+                { "value": "btn-white", "label": "White"},
+                { "value": "btn-outline-white", "label": "White Outline"}
+             ],
+             "default": "btn-primary"
+          },
+          {
+             "type": "select",
+             "id": "size",
+             "label": "Size",
+             "options": [
+                { "value": "btn-sm", "label": "Small"},
+                { "value": "", "label": "Normal"},
+                { "value": "btn-lg", "label": "Large"},
+                { "value": "btn-xl", "label": "X-Large"}
+             ],
+             "default": ""
+          }
+        ]
+      },
+      {
+        "type": "breadcrumbs",
+        "name": "Breadcrumbs"
+      },
+      {
+        "type": "html",
+        "name": "HTML",
+        "settings": [
+          {
+            "type": "html",
+            "id": "html",
+            "label": "Custom HTML"
+          }
+        ]
+      },
+      {
+        "type": "rating",
+        "name": "Star Rating",
+        "settings": [
+          {
+            "type": "range",
+            "id": "padding",
+            "label": "Padding",
+            "min": 0,
+            "max": 7,
+            "step": 1,
+            "default": 1
+          },
+          {
+            "type": "product",
+            "id": "product",
+            "label": "Product"
+          }
+        ]
+      }
+    ],
+    "presets": [
+      {
+        "name": "Banner"
+      }
+    ]
+  }
+{% endschema %}

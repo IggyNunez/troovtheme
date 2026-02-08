@@ -1,0 +1,66 @@
+<section>
+  <div class="container">
+    <div class="row justify-content-center">
+      
+      <div class="col-md-6 col-12">
+        <h1 class="pt-5">{{ 'customer.login.title' | t }}</h1>
+        {% form 'customer_login' %}
+        {{ form.errors | default_errors }}
+        
+        <div class="form-floating mb-3">
+          <input type="email" name="customer[email]" class="form-control" id="inputEmail" aria-describedby="emailHelp" placeholder="Enter email">
+          <label for="inputEmail">{{ 'customer.login.email' | t }}</label>
+        </div>
+        <div class="form-floating mb-3">
+          <input type="password" name="customer[password]" class="form-control" id="inputPassword" placeholder="Password">
+          <label for="inputPassword">{{ 'customer.login.password' | t }}</label>
+        </div>
+
+        <button type="submit" class="btn btn-primary btn-lg">{{ 'customer.login.sign_in' | t }}</button>
+        <a href="#" class="float-end" data-bs-toggle="modal" data-bs-target="#recoverPasswordModal">{{ 'customer.login.forgot_password' | t }}</a>
+
+        {% endform %}
+
+        <hr />
+        
+        <p class="text-center">
+          <a href="/account/register" class="btn btn-outline-secondary">{{ 'layout.customer.create_account' | t }}</a>
+        </p>
+      </div>
+      
+    </div>
+  </div>
+</section>
+
+<div class="modal fade" tabindex="-1" role="dialog" id="recoverPasswordModal">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">{{ 'customer.recover_password.title' | t }}</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      
+      {% form 'recover_customer_password' %}
+      <div class="modal-body">
+        <p>{{ 'customer.recover_password.subtext' | t }}</p>
+
+        {{ form.errors | default_errors }}
+
+        {% if form.posted_successfully? %}
+        <span class="d-none bg-success"></span>
+        {% endif %}
+        <div class="form-floating">
+          <input type="email" class="form-control" name="email" id="recoverEmail" autocorrect="off" autocapitalize="off" placeholder="Enter email">
+          <label for="recoverEmail">{{ 'customer.recover_password.email' | t }}</label>
+        </div>
+
+      </div>
+      <div class="modal-footer justify-content-between">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+        <button type="button" class="btn btn-primary">{{ 'customer.recover_password.submit' | t }}</button>
+      </div>
+
+      {% endform %}
+    </div>
+  </div>
+</div>

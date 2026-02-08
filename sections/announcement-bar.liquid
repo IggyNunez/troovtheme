@@ -1,0 +1,65 @@
+{%- assign display_annoucement = true -%}
+{%- if section.settings.template_limit contains template.name -%}
+{%- assign display_annoucement = false -%}
+{%- endif -%}
+
+{%- if display_annoucement -%}
+<style>
+ {% unless section.settings.color_bg == "rgba(0,0,0,0)" %}#section-{{ section.id }} { background-color: {{ section.settings.color_bg }}; }{% endunless %}
+ {% unless section.settings.color_title == "rgba(0,0,0,0)" %}#section-{{ section.id }}, #section-{{ section.id }} p, #section-{{ section.id }} div { color: {{ section.settings.color_title }}; }{% endunless %}
+</style>
+
+<section class="top-banner" id="section-{{ section.id }}">
+  {%- if section.settings.cta_link != blank -%}<a href="{{ section.settings.cta_link }}" class="top-banner-link">{%- endif -%}
+  {{ section.settings.title }}
+  {%- if section.settings.cta_link != blank -%}</a>{%- endif -%}
+</section>
+{%- endif -%}
+
+{% stylesheet %}
+.top-banner { display:block; padding:0.5rem 1rem; }
+.top-banner, .top-banner p { font-size:0.875em; letter-spacing: 1px; text-align:center; }
+.top-banner p { padding:0; margin:0; }
+.top-banner a { text-decoration:none; }
+
+@media only screen and (max-width: 900px) {
+.top-banner { padding:0.5rem; }
+.top-banner, .top-banner p { font-size:0.75em; }
+}
+{% endstylesheet %}
+
+{% schema %}
+  {
+    "name": "Announcement Bar",
+    "settings": [
+      {
+        "type": "color",
+        "id": "color_bg",
+        "label": "Background color",
+        "default": "#7796a8"
+      },
+      {
+        "type": "text",
+        "id": "template_limit",
+        "label": "Limit to specific templates",
+		"info": "add template name(s) (e.g., index, collection, product, pages)"
+      },
+      {
+        "type": "html",
+        "id": "title",
+        "label": "Title"
+      },
+      {
+        "type": "color",
+        "id": "color_title",
+        "label": "Title color"
+      },
+      {
+        "type": "url",
+        "id": "cta_link",
+        "label": "Banner Link",
+        "info": "(Optional)"
+      }
+	]
+  }
+{% endschema %}

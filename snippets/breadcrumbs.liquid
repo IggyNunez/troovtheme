@@ -1,0 +1,43 @@
+{% unless template == 'index' or template == 'cart' or template == 'list-collections' %}
+<nav aria-label="breadcrumb" role="navigation">
+  <ol class="breadcrumb">
+    <li class="breadcrumb-item"><a href="/">{{ shop.name }}</a></li>
+    {% if template contains 'page' %}
+    	<li class="breadcrumb-item active" aria-current="page">{{ page.title }}</li>
+    {% elsif template contains 'product' %}
+      {%- assign featured_clp = product.metafields.global.featured-clp -%}
+      {%- assign featured_plp = product.metafields.global.featured-plp -%}
+      {% if featured_clp %}
+      <li class="breadcrumb-item">{{ collections[featured_clp].title | link_to: collections[featured_clp].url }}</li>
+      {% elsif collection.url %}
+      <li class="breadcrumb-item">{{ collection.title | link_to: collection.url }}</li>
+      {% endif %}
+      {% if featured_plp%}
+      <li class="breadcrumb-item">{{ collections[featured_plp].title | link_to: collections[featured_plp].url }}</li>
+      {% endif %}
+    
+    {% elsif template contains 'collection' and collection.handle %}
+      {%- assign featured_clp = collection.metafields.global.featured-clp -%}
+      {%- if featured_clp -%}<li class="breadcrumb-item">{{ collections[featured_clp].title | link_to: collections[featured_clp].url }}</li>{%- endif -%}
+    {% elsif template == 'blog' %}
+      {% if current_tags %}
+    	<li class="breadcrumb-item active">{{ blog.title | link_to: blog.url }}</li>
+        <li class="breadcrumb-item">{{ current_tags | join: " + " }}</li>
+      {% else %}
+      	<li class="breadcrumb-item">{{ blog.title }}</li>
+      {% endif %}
+    {% elsif template == 'article' %}
+    	<li class="breadcrumb-item active">{{ blog.title | link_to: blog.url }}</li>
+      	{% comment %}<li class="breadcrumb-item">{{ article.title }}</li>{% endcomment %}
+    
+    {% elsif template.directory == 'customers' %}
+     	{% capture url %}/account{% endcapture %}
+    	<li class="breadcrumb-item active">{{ 'customer.account.title' | t | link_to: url }}</li>
+    	<li class="breadcrumb-item">{{ page_title }}</li>
+    
+    {% else %}
+    	<li class="breadcrumb-item">{{ page_title }}</li>
+    {% endif %}
+  </ol>
+</nav>
+{% endunless %}

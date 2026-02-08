@@ -1,0 +1,748 @@
+{%- comment -%}
+  Bundle Product Section - Page Reload Version
+  When customer clicks a bundle, redirects to that product's page
+  This ensures Seal loads correctly for each product
+{%- endcomment -%}
+
+{%- liquid
+  # Get current product from page or default to bundle 2
+  if product
+    assign current_product = product
+    assign current_variant = product.selected_or_first_available_variant
+  else
+    assign current_product = all_products[section.settings.bundle_2_handle]
+    assign current_variant = current_product.selected_or_first_available_variant
+  endif
+  
+  # Load all bundles for selection
+  assign bundle_1 = all_products[section.settings.bundle_1_handle]
+  assign bundle_2 = all_products[section.settings.bundle_2_handle]
+  assign bundle_3 = all_products[section.settings.bundle_3_handle]
+  
+  assign bundle_1_variant = bundle_1.selected_or_first_available_variant
+  assign bundle_2_variant = bundle_2.selected_or_first_available_variant
+  assign bundle_3_variant = bundle_3.selected_or_first_available_variant
+-%}
+
+<style>
+  #bundle-product-{{ section.id }} {
+    background: {{ section.settings.bg_color }};
+    padding: 40px 0;
+  }
+  
+  .bundle-product-container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 0 20px;
+  }
+  
+  .bundle-product-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 60px;
+    align-items: start;
+  }
+  
+  /* === IMAGE GALLERY === */
+  .product-gallery {
+    position: sticky;
+    top: 20px;
+  }
+  
+  .gallery-main {
+    position: relative;
+    border-radius: 16px;
+    overflow: hidden;
+   /*background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);*/
+    margin-bottom: 15px;
+  }
+  
+  .gallery-main img {
+    width: 100%;
+    height: auto;
+    display: block;
+  }
+  
+  .gallery-thumbnails {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+  }
+  
+  .gallery-thumb {
+    border: 2px solid #e0e0e0;
+    border-radius: 8px;
+    overflow: hidden;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  
+  .gallery-thumb:hover,
+  .gallery-thumb.active {
+    border-color: {{ section.settings.accent_color }};
+  }
+  
+  .gallery-thumb img {
+    width: 100%;
+    height: auto;
+    display: block;
+  }
+  
+  /* === PRODUCT INFO === */
+  .product-info {
+    padding: 20px 0;
+  }
+  
+  .product-header h1 {
+    font-size: 2.5rem;
+    font-weight: 700;
+    margin: 0 0 10px 0;
+    line-height: 1.2;
+  }
+  
+  .product-tagline {
+    font-size: 1.1rem;
+    color: #666;
+    margin-bottom: 20px;
+  }
+  
+  .product-guarantee {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: {{ section.settings.accent_color }};
+    color: white;
+    padding: 10px 20px;
+    border-radius: 50px;
+    font-weight: 600;
+    margin-bottom: 15px;
+  }
+  
+  .product-rating {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 30px;
+  }
+  
+  .stars {
+    color: #ffc107;
+    font-size: 1.2rem;
+  }
+  
+  /* === BUNDLE SELECTOR === */
+  .bundle-selector {
+    margin: 30px 0;
+  }
+  
+  .bundle-selector-label {
+    font-weight: 600;
+    margin-bottom: 15px;
+    font-size: 1.1rem;
+  }
+  
+  .bundle-options {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    margin-bottom: 30px;
+  }
+  
+  .bundle-option {
+    position: relative;
+    border: 2px solid #e0e0e0;
+    border-radius: 12px;
+    padding: 20px 12px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.3s;
+    background: white;
+    text-decoration: none;
+    color: inherit;
+    display: block;
+  }
+  
+  .bundle-option:hover {
+    border-color: {{ section.settings.accent_color }};
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    text-decoration: none;
+    color: inherit;
+  }
+  
+  .bundle-option.selected {
+    border-color: {{ section.settings.accent_color }};
+    border-width: 3px;
+    background: {{ section.settings.accent_color }}15;
+  }
+  
+  .bundle-badge {
+    position: absolute;
+    top: -10px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: {{ section.settings.accent_color }};
+    color: white;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+  
+  .bundle-badge.trial { background: #6c757d; }
+  .bundle-badge.best { background: #28a745; }
+  
+  .bundle-servings {
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin-bottom: 5px;
+  }
+  
+  .bundle-per-serving {
+    color: {{ section.settings.accent_color }};
+    font-size: 1rem;
+    font-weight: 600;
+  }
+  
+  /* === PRODUCT DESCRIPTION === */
+  .product-description {
+    margin: 20px 0;
+    line-height: 1.6;
+  }
+  
+  /* === SEAL WIDGET AREA === */
+  .seal-subscription-area {
+    margin: 30px 0;
+    padding: 20px;
+    background: #f9f9f9;
+    border-radius: 12px;
+  }
+  
+  .seal-subscription-area h3 {
+    margin: 0 0 15px 0;
+    font-size: 1.2rem;
+  }
+  
+  /* === ADD TO CART === */
+  .add-to-cart-section {
+    margin: 30px 0;
+  }
+  
+  .quantity-selector {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 20px;
+  }
+  
+  .quantity-selector label {
+    font-weight: 600;
+  }
+  
+  .quantity-selector input {
+    width: 80px;
+    padding: 10px;
+    border: 2px solid #e0e0e0;
+    border-radius: 8px;
+    text-align: center;
+    font-size: 1rem;
+  }
+  
+  .add-to-cart-btn {
+    width: 100%;
+    background: {{ section.settings.accent_color }};
+    color: white;
+    border: none;
+    padding: 18px;
+    font-size: 1.2rem;
+    font-weight: 700;
+    border-radius: 50px;
+    cursor: pointer;
+    transition: all 0.3s;
+  }
+  
+  .add-to-cart-btn:hover {
+    background: {{ section.settings.accent_color }}dd;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+  }
+  
+  .add-to-cart-btn:disabled {
+    background: #ccc;
+    cursor: not-allowed;
+  }
+  
+  /* === TRUST BADGES === */
+  .trust-badges {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 20px;
+    margin-top: 30px;
+    padding-top: 30px;
+    border-top: 1px solid #e0e0e0;
+  }
+  
+  .trust-badge {
+    text-align: center;
+  }
+  
+  .trust-badge img {
+    width: 48px;
+    height: 48px;
+    margin-bottom: 10px;
+  }
+  
+  .trust-badge-title {
+    font-weight: 600;
+    margin-bottom: 5px;
+    font-size: 0.95rem;
+  }
+  
+  .trust-badge-text {
+    font-size: 0.85rem;
+    color: #666;
+  }
+  
+  /* === RESPONSIVE === */
+  @media (max-width: 1024px) {
+    .bundle-product-grid {
+      gap: 40px;
+    }
+  }
+  
+  @media (max-width: 768px) {
+    .bundle-product-grid {
+      grid-template-columns: 1fr;
+      gap: 30px;
+    }
+    
+    .product-gallery {
+      position: static;
+    }
+    
+    .bundle-options {
+     grid-template-columns: repeat(3, 1fr);
+     gap: 3px;
+    }
+    
+    .trust-badges {
+      grid-template-columns: repeat(6, 1fr);
+    }
+    
+    .product-header h1 {
+      font-size: 2rem;
+    }
+    .bundle-servings {
+    font-size: 1rem;
+    font-weight: 700;
+    margin-bottom: 5px;
+  }
+  .bundle-per-serving {
+    color: {{ section.settings.accent_color }};
+    font-size: .7rem;
+    font-weight: 600;
+  }
+  }
+</style>
+
+<section id="bundle-product-{{ section.id }}">
+  <div class="bundle-product-container">
+    <div class="bundle-product-grid">
+      
+      <!-- LEFT: IMAGE GALLERY -->
+      <div class="product-gallery">
+        <div class="gallery-main">
+          {%- if current_product.images.size > 0 -%}
+            <img src="{{ current_product.images[0] | image_url: width: 800 }}" 
+                 alt="{{ current_product.title }}"
+                 id="main-image-{{ section.id }}">
+          {%- else -%}
+            <img src="{{ 'product-placeholder.svg' | asset_url }}" alt="Product">
+          {%- endif -%}
+        </div>
+        
+        {%- if current_product.images.size > 1 -%}
+        <div class="gallery-thumbnails">
+          {%- for image in current_product.images limit: 4 -%}
+            <div class="gallery-thumb{% if forloop.first %} active{% endif %}" 
+                 data-image-url="{{ image | image_url: width: 800 }}">
+              <img src="{{ image | image_url: width: 150 }}" alt="{{ current_product.title }}">
+            </div>
+          {%- endfor -%}
+        </div>
+        {%- endif -%}
+      </div>
+      
+      <!-- RIGHT: PRODUCT INFO -->
+      <div class="product-info">
+        
+        <!-- Header -->
+        <div class="product-header">
+          <h1>{{ section.settings.product_title | default: current_product.title }}</h1>
+          
+          {%- if section.settings.product_tagline != blank -%}
+            <p class="product-tagline">{{ section.settings.product_tagline }}</p>
+          {%- endif -%}
+          
+          {%- if section.settings.show_guarantee -%}
+            <div class="product-guarantee">
+              <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+                <path d="M10 2L12.5 7L18 8L14 12L15 18L10 15L5 18L6 12L2 8L7.5 7L10 2Z"/>
+              </svg>
+              {{ section.settings.guarantee_text }}
+            </div>
+          {%- endif -%}
+          
+          {%- if section.settings.show_rating -%}
+            <div class="product-rating">
+              <span class="stars">★★★★★</span>
+              <span>{{ section.settings.rating_text }}</span>
+            </div>
+          {%- endif -%}
+        </div>
+        
+        <!-- Bundle Selector -->
+        <div class="bundle-selector" id="selector">
+          <div class="bundle-selector-label">Choose Your Bundle Size</div>
+          
+          <div class="bundle-options">
+            
+            {%- if bundle_1 != blank -%}
+            <a href="/products/{{ bundle_1.handle }}#selector" 
+               class="bundle-option{% if current_product.handle == bundle_1.handle %} selected{% endif %}">
+              {%- if section.settings.bundle_1_badge != blank -%}
+                <div class="bundle-badge trial">{{ section.settings.bundle_1_badge }}</div>
+              {%- endif -%}
+              <div class="bundle-servings">{{ section.settings.bundle_1_servings }} Servings</div>
+              {%- assign per_serving = bundle_1_variant.price | times: 1.0 | divided_by: section.settings.bundle_1_servings | divided_by: 100.0 | round: 2 -%}
+              <div class="bundle-per-serving">{{ per_serving | money }}/serving</div>
+            </a>
+            {%- endif -%}
+            
+            {%- if bundle_2 != blank -%}
+            <a href="/products/{{ bundle_2.handle }}#selector" 
+               class="bundle-option{% if current_product.handle == bundle_2.handle %} selected{% endif %}">
+              {%- if section.settings.bundle_2_badge != blank -%}
+                <div class="bundle-badge">{{ section.settings.bundle_2_badge }}</div>
+              {%- endif -%}
+              <div class="bundle-servings">{{ section.settings.bundle_2_servings }} Servings</div>
+              {%- assign per_serving = bundle_2_variant.price | times: 1.0 | divided_by: section.settings.bundle_2_servings | divided_by: 100.0 | round: 2 -%}
+              <div class="bundle-per-serving">{{ per_serving | money }}/serving</div>
+            </a>
+            {%- endif -%}
+            
+            {%- if bundle_3 != blank -%}
+            <a href="/products/{{ bundle_3.handle }}#selector" 
+               class="bundle-option{% if current_product.handle == bundle_3.handle %} selected{% endif %}">
+              {%- if section.settings.bundle_3_badge != blank -%}
+                <div class="bundle-badge best">{{ section.settings.bundle_3_badge }}</div>
+              {%- endif -%}
+              <div class="bundle-servings">{{ section.settings.bundle_3_servings }} Servings</div>
+              {%- assign per_serving = bundle_3_variant.price | times: 1.0 | divided_by: section.settings.bundle_3_servings | divided_by: 100.0 | round: 2 -%}
+              <div class="bundle-per-serving">{{ per_serving | money }}/serving</div>
+            </a>
+            {%- endif -%}
+            
+          </div>
+        </div>
+        
+      
+        <!-- Seal Subscription Widget -->
+        <div class="seal-subscription-area">
+          <h3>Purchase Options</h3>
+          <div class="sealsubs-target-element" 
+               data-handle="{{ current_product.handle }}"
+               data-selector="form[action*=/cart/add]">
+            <!-- Seal widget loads here automatically -->
+          </div>
+        </div>
+        
+        <!-- Add to Cart Form -->
+        <form action="/cart/add" method="post" class="add-to-cart-section">
+          
+          <div class="quantity-selector">
+            <label for="quantity-{{ section.id }}">Quantity</label>
+            <input type="number" 
+                   id="quantity-{{ section.id }}" 
+                   name="quantity" 
+                   value="1" 
+                   min="1" 
+                   max="10">
+          </div>
+          
+          <input type="hidden" 
+                 name="id" 
+                 value="{{ current_variant.id }}">
+          
+          <button type="submit" class="add-to-cart-btn">
+            {{ section.settings.cta_text }}
+          </button>
+          
+        </form>
+        
+        <!-- Trust Badges -->
+        {%- if section.blocks.size > 0 -%}
+        <div class="trust-badges">
+          {%- for block in section.blocks -%}
+            {%- case block.type -%}
+              {%- when 'trust_badge' -%}
+                <div class="trust-badge" {{ block.shopify_attributes }}>
+                  {%- if block.settings.icon != blank -%}
+                    <img src="{{ block.settings.icon | image_url: width: 100 }}" alt="{{ block.settings.title }}">
+                  {%- endif -%}
+                  <div class="trust-badge-title">{{ block.settings.title }}</div>
+                  {%- if block.settings.description != blank -%}
+                    <div class="trust-badge-text">{{ block.settings.description }}</div>
+                  {%- endif -%}
+                </div>
+            {%- endcase -%}
+          {%- endfor -%}
+        </div>
+        {%- endif -%}
+          <!-- Product Description -->
+        {%- if section.settings.show_description -%}
+        <div class="product-description">
+          {{ current_product.description }}
+        </div>
+        {%- endif -%}
+        
+      </div>
+      
+    </div>
+  </div>
+</section>
+
+<script>
+(function() {
+  const sectionId = '{{ section.id }}';
+  
+  // Gallery thumbnail clicks
+  const galleryThumbs = document.querySelectorAll(`#bundle-product-${sectionId} .gallery-thumb`);
+  const mainImage = document.getElementById(`main-image-${sectionId}`);
+  
+  galleryThumbs.forEach(thumb => {
+    thumb.addEventListener('click', function() {
+      galleryThumbs.forEach(t => t.classList.remove('active'));
+      this.classList.add('active');
+      
+      const imageUrl = this.dataset.imageUrl;
+      if (mainImage) {
+        mainImage.src = imageUrl;
+      }
+    });
+  });
+  
+})();
+</script>
+
+{% schema %}
+{
+  "name": "Bundle Product (Reload)",
+  "settings": [
+    {
+      "type": "paragraph",
+      "content": "Bundle selector that reloads the page when switching products. This ensures Seal loads correctly for each product."
+    },
+    {
+      "type": "header",
+      "content": "Product Info"
+    },
+    {
+      "type": "text",
+      "id": "product_title",
+      "label": "Product Title",
+      "info": "Leave blank to use product title"
+    },
+    {
+      "type": "textarea",
+      "id": "product_tagline",
+      "label": "Product Tagline"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_description",
+      "label": "Show Product Description",
+      "default": true
+    },
+    {
+      "type": "header",
+      "content": "Guarantee & Rating"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_guarantee",
+      "label": "Show Guarantee Badge",
+      "default": true
+    },
+    {
+      "type": "text",
+      "id": "guarantee_text",
+      "label": "Guarantee Text",
+      "default": "Sleep better or your money back"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_rating",
+      "label": "Show Rating",
+      "default": true
+    },
+    {
+      "type": "text",
+      "id": "rating_text",
+      "label": "Rating Text",
+      "default": "Helped 30K+ customers"
+    },
+    {
+      "type": "header",
+      "content": "Bundle 1 - Trial"
+    },
+    {
+      "type": "product",
+      "id": "bundle_1_handle",
+      "label": "Product"
+    },
+    {
+      "type": "range",
+      "id": "bundle_1_servings",
+      "min": 1,
+      "max": 100,
+      "step": 1,
+      "label": "Servings",
+      "default": 15
+    },
+    {
+      "type": "text",
+      "id": "bundle_1_badge",
+      "label": "Badge",
+      "default": "TRIAL"
+    },
+    {
+      "type": "header",
+      "content": "Bundle 2 - Most Popular"
+    },
+    {
+      "type": "product",
+      "id": "bundle_2_handle",
+      "label": "Product"
+    },
+    {
+      "type": "range",
+      "id": "bundle_2_servings",
+      "min": 1,
+      "max": 100,
+      "step": 1,
+      "label": "Servings",
+      "default": 30
+    },
+    {
+      "type": "text",
+      "id": "bundle_2_badge",
+      "label": "Badge",
+      "default": "MOST ORDERED"
+    },
+    {
+      "type": "header",
+      "content": "Bundle 3 - Best Value"
+    },
+    {
+      "type": "product",
+      "id": "bundle_3_handle",
+      "label": "Product"
+    },
+    {
+      "type": "range",
+      "id": "bundle_3_servings",
+      "min": 1,
+      "max": 100,
+      "step": 1,
+      "label": "Servings",
+      "default": 45
+    },
+    {
+      "type": "text",
+      "id": "bundle_3_badge",
+      "label": "Badge",
+      "default": "BEST VALUE"
+    },
+    {
+      "type": "header",
+      "content": "CTA"
+    },
+    {
+      "type": "text",
+      "id": "cta_text",
+      "label": "Button Text",
+      "default": "Add to Cart"
+    },
+    {
+      "type": "header",
+      "content": "Colors"
+    },
+    {
+      "type": "color",
+      "id": "bg_color",
+      "label": "Background Color",
+      "default": "#ffffff"
+    },
+    {
+      "type": "color",
+      "id": "accent_color",
+      "label": "Accent Color",
+      "default": "#5B3A8C"
+    }
+  ],
+  "blocks": [
+    {
+      "type": "trust_badge",
+      "name": "Trust Badge",
+      "settings": [
+        {
+          "type": "image_picker",
+          "id": "icon",
+          "label": "Icon"
+        },
+        {
+          "type": "text",
+          "id": "title",
+          "label": "Title"
+        },
+        {
+          "type": "text",
+          "id": "description",
+          "label": "Description"
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "Bundle Product (Reload)",
+      "blocks": [
+        {
+          "type": "trust_badge",
+          "settings": {
+            "title": "Free Shipping",
+            "description": "For Subscribers"
+          }
+        },
+        {
+          "type": "trust_badge",
+          "settings": {
+            "title": "90-Day Money",
+            "description": "Back Guarantee"
+          }
+        },
+        {
+          "type": "trust_badge",
+          "settings": {
+            "title": "Helped 30K+",
+            "description": "customers"
+          }
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}

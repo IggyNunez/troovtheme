@@ -1,0 +1,41 @@
+{%- if image_src != blank -%}
+	{%- if size == blank -%}{% assign size = '500x' %}{%- endif -%}
+	{%- assign file_parts = image_src | downcase | strip | split: '.' -%}
+	{%- if file_parts.size > 1 -%}
+		{%- assign file_ext = file_parts | last -%} 
+		{%- if format == blank -%} 
+          {% case file_ext %}
+            {% when 'jpg' %}
+              {%- assign ext = '.' | append: file_ext -%}  
+              {%- assign command_ext = '_' | append: size | append: ext -%}  
+              {%- assign image_src = image_src | replace: ext, command_ext -%}   
+            {% when 'pjpg' %}
+            {% when 'gif' %}
+            {% when 'png' %}
+              {%- assign ext = '.' | append: file_ext -%}  
+              {%- assign command_ext = '_' | append: size | append: ext -%}  
+              {%- assign image_src = image_src | replace: ext, command_ext -%}    
+            {% else %}
+              {%- assign ext = '.' | append: file_ext -%}  
+              {%- assign command_ext = '_' | append: size | append: '.jpg' -%}  
+              {%- assign image_src = image_src | replace: ext, command_ext -%}    
+          {% endcase %}
+		{%- else -%}
+          {% case format %}
+            {% when 'jpg' %}
+              {%- assign ext = '.' | append: file_ext -%}  
+              {%- assign command_ext = '_' | append: size | append: ext -%}  
+              {%- assign image_src = image_src | replace: ext, command_ext -%}   
+            {% when 'pjpg' %}
+              {%- assign ext = '.' | append: file_ext -%}
+              {%- assign command_ext = '_' | append: size | append: ext -%}
+              {%- assign image_src = image_src | replace: ext, command_ext -%}
+            {% else %}
+              {%- assign ext = '.' | append: file_ext -%}
+              {%- assign command_ext = '_' | append: size | append: '.jpg' -%}
+              {%- assign image_src = image_src | replace: ext, command_ext -%}
+          {% endcase %}
+		{%- endif -%}
+	{%- endif -%}
+{%- endif -%}
+{{ image_src }}

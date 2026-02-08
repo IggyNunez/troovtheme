@@ -1,0 +1,324 @@
+<style>
+  {%- unless section.settings.color_bg == "rgba(0,0,0,0)" -%}#section-{{ section.id }} {  background-color: {{ section.settings.color_bg }}!important; }{%- endunless -%}
+  {%- unless section.settings.color_title == "rgba(0,0,0,0)" -%}#section-{{ section.id }} .header .title {  color: {{ section.settings.color_title }}!important; }{%- endunless -%}
+  {%- unless section.settings.hover_zoom == false -%}#section-{{ section.id }} a .card-img:hover { transform: scale(1.1); }{%- endunless -%}
+  {%- for block in section.blocks -%}
+    {%- unless block.settings.text_color  == "rgba(0,0,0,0)" -%}#block-{{ block.id }} .card-title,#block-{{block.id}} .card-text, #block-{{block.id}} .card-text * { color: {{ block.settings.text_color }}!important; }{%- endunless -%}
+  {%- endfor -%}
+</style>
+
+{%- if section.settings.anchor_id -%}<a name="{{section.settings.anchor_id}}" class="anchor"></a>{%- endif -%}
+<section class="content-grid-images" id="section-{{ section.id }}">
+	<div class="container{%- if section.settings.fluid_section -%}-fluid{%- endif -%}">
+      
+      {% if section.settings.title != blank or section.settings.description != blank %}
+      <div class="content header {{ section.settings.alignment }}">
+        {%- if section.settings.title != blank -%}
+        <{{ section.settings.header_tag }} class="title">{{ section.settings.title }}</{{ hsection.settings.header_tag }}>
+          {%- endif -%}
+
+          {%- if section.settings.description != blank -%}
+          <div>{{ section.settings.description }}</div>
+          {%- endif -%}
+      </div>
+      {%- endif -%}
+  
+      <div class="row">
+      	{% for block in section.blocks %}
+        {%- assign image_title = card_title | default:section.settings.title -%}
+        {%- assign image_width = settings.site_max_width | divided_by:2-%}
+        {%- assign image_height = image_width | divided_by:block.settings.image.aspect_ratio | ceil -%}
+
+      	{%- if forloop.first -%}
+        <div class="col-12 col-sm-6">
+          <div class="card" id="block-{{ block.id }}">
+            {%- if block.settings.link != blank -%}<a href="{{ block.settings.link }}">{%- endif -%}
+            <div class="card-img-container">
+            {%- if block.settings.image != blank -%}
+            <picture>
+              <source media="(max-width: 500px)" data-srcset="{%- if block.settings.image_xs -%}{{ block.settings.image_xs | img_url: '500x' }}{%- else -%}{{ block.settings.image | img_url: '500x' }}{%- endif -%}">
+              <img data-src="{{ block.settings.image | img_url: '800x' }}" width="{{ image_width }}" height="{{ image_height }}" alt="{{ block.settings.image_alt_text }}" class="img-fluid card-img lazyload">
+            </picture>
+            {%- else -%}
+            {% capture current %}{% cycle 1, 2, 3, 4, 5, 6 %}{% endcapture %}
+            {{ 'collection-' | append: current | placeholder_svg_tag: 'placeholder-svg card-img' }}
+            {%- endif -%}
+            </div>
+            <div class="card-img-overlay {{ block.settings.alignment }}">
+              <h3 class="card-title">{{ block.settings.title }}</h3>
+              {%- if block.settings.text != blank -%}<p class="card-text">{{ block.settings.text }}</p>{%- endif -%}
+            </div>
+            {%- if block.settings.link != blank -%}</a>{%- endif -%}
+          </div>
+        </div>
+        <div class="col-12 col-sm-6">
+          <div class="row g-1">
+        {%- else -%}
+            
+            {%- assign image_width = settings.site_max_width | divided_by:4 -%}
+            {%- assign image_height = image_width | divided_by:block.settings.image.aspect_ratio | ceil -%}
+            <div class="col-6">
+              <div class="card" id="block-{{ block.id }}">
+                {%- if block.settings.link != blank -%}<a href="{{ block.settings.link }}">{%- endif -%}
+                <div class="card-img-container">
+                {%- if block.settings.image != blank -%}
+                <picture>
+                  <source media="(max-width: 500px)" data-srcset="{%- if block.settings.image_xs -%}{{ block.settings.image_xs | img_url: '400x' }}{%- else -%}{{ block.settings.image | img_url: '400x' }}{%- endif -%}">
+                  <img data-src="{{ block.settings.image | img_url: '400x' }}" width="{{ image_width }}" height="{{ image_height }}" alt="{{ block.settings.image_alt_text }}" class="img-fluid card-img lazyload">
+                </picture>
+                {%- else -%}
+                {% capture current %}{% cycle 1, 2, 3, 4, 5, 6 %}{% endcapture %}
+                {{ 'collection-' | append: current | placeholder_svg_tag: 'placeholder-svg card-img' }}
+                {%- endif -%}
+                </div>
+                <div class="card-img-overlay {{ block.settings.alignment }}">
+                  <h3 class="card-title">{{ block.settings.title }}</h3>
+                  {%- if block.settings.body != blank -%}<p class="card-text">{{ block.settings.body }}</p>{%- endif -%}
+                </div>
+                {%- if block.settings.link != blank -%}</a>{%- endif -%}
+              </div>
+            </div>
+		{%- endif -%}
+        {%- if forloop.last -%}
+          </div>
+        </div>
+        {%- endif -%}
+      	{%- endfor -%}
+      </div>
+	</div>
+</section>
+
+{% stylesheet %}
+section.content-grid-images { margin-bottom:0.5rem; }
+section.content-grid-images .row { height:100%; }
+section.content-grid-images .row .card, section.content-grid-images .row .card a { height:100%; }
+section.content-grid-images .card { padding:0!important; }
+section.content-grid-images .card-title { margin:0; }
+section.content-grid-images .card-text { margin-top:0.5rem; }
+section.content-grid-images .card-img-overlay { top:auto; padding:1.5rem!important; }
+section.content-grid-images .card .card-img { transition: transform 1s ease; border-radius:0; }
+.content-grid-images .row, .row.product-grid { --bs-gutter-y:0.5rem; }
+
+@media only screen and (max-width: 768px) {
+  section.content-grid-images .card-img-overlay { padding:1rem!important; }
+  section.content-grid-images .card-title { font-size:1.5rem!important; }
+}
+{% endstylesheet %}
+
+{% schema %}
+  {
+    "name": "Image Grid",
+    "max_blocks": 5,
+    "settings": [
+      {
+        "type": "header",
+        "content": "Background"
+      },
+      {
+        "type": "checkbox",
+        "id": "fluid_section",
+        "label": "Borderless container",
+        "default": false
+      },
+      {
+        "type": "color",
+        "id": "color_bg",
+        "label": "Background color",
+        "default": "rgba(0,0,0,0)"
+      },
+      {
+        "type": "text",
+        "id": "anchor_id",
+        "label": "Section Anchor ID"
+      },
+      {
+        "type": "text",
+        "id": "class",
+        "label": "Custom class"
+      },
+      {
+        "type": "color",
+        "id": "offset_color",
+        "label": "Background offset color",
+        "default": "rgba(0,0,0,0)"
+      },
+      {
+        "type": "select",
+        "id": "offset_position",
+        "label": "Background offset position",
+        "default": "bottom",
+        "options": [
+          { "value": "top", "label": "Top" },
+          { "value": "bottom", "label": "Bottom" },
+          { "value": "left", "label": "Left" },
+          { "value": "right", "label": "Right" },
+          { "value": "center-v", "label": "Vertical Center " },
+          { "value": "center-h", "label": "Horizontal Center" }
+        ]
+      },
+      {
+        "type": "range",
+        "id": "offset_height",
+        "label": "Background offset height",
+        "min": 0,
+        "max": 100,
+        "step": 5,
+        "unit": "%",
+        "default": 50
+      },
+      {
+        "type": "header",
+        "content": "Header Content"
+      },
+      {
+        "type": "select",
+        "id": "alignment",
+        "label": "Alignment",
+        "default": "",
+        "options": [
+          { "value": "", "label": "Left" },
+          { "value": "text-center", "label": "Center" },
+          { "value": "text-end", "label": "Right" }
+        ]
+      },
+      {
+        "type": "text",
+        "id": "title",
+        "label": "Title"
+      },
+      {
+        "type": "select",
+        "id": "header_tag",
+        "label": "Title Tag Type",
+        "default": "h2",
+        "options": [ 
+		  { "value": "h1", "label": "h1" },
+          { "value": "h2", "label": "h2" },
+          { "value": "h3", "label": "h3" },
+          { "value": "h4", "label": "h4" }
+        ]
+      },
+      {
+        "type": "color",
+        "id": "color_title",
+        "label": "Title color",
+        "default": "rgba(0,0,0,0)"
+      },
+      {
+        "type": "richtext",
+        "id": "description",
+        "label": "Body"
+      },
+      {
+        "type": "color",
+        "id": "color_body",
+        "label": "Body color",
+        "default": "rgba(0,0,0,0)"
+      },
+      {
+        "type": "url",
+        "id": "cta_link",
+        "label": "Button Link",
+        "info": "Button will only show if a link is assigned"
+      },
+      {
+        "type": "text",
+        "id": "cta_label",
+        "label": "Button Label"
+      },
+      {
+         "type": "select",
+         "id": "cta_theme",
+		 "label": "Button Style",
+         "options": [
+            { "value": "btn-primary", "label": "Primary"},
+			{ "value": "btn-outline-primary", "label": "Primary Outline"},
+            { "value": "btn-secondary", "label": "Secondary"},
+			{ "value": "btn-outline-secondary", "label": "Secondary Outline"}
+         ],
+		 "default": "btn-primary"
+      },
+      {
+         "type": "select",
+         "id": "cta_size",
+		 "label": "Button Size",
+         "options": [
+          { "value": "btn-sm", "label": "Small"},
+          { "value": "", "label": "Normal"},
+          { "value": "btn-lg", "label": "Large"},
+          { "value": "btn-xl", "label": "X-Large"}
+         ],
+         "default": ""
+      }
+    ],
+    "blocks": [
+      {
+        "type": "grid_block",
+        "name": "Column",
+        "settings": [
+          {
+            "type": "image_picker",
+            "id": "image",
+            "label": "Image",
+			"info": "(Optional)"
+          },
+          {
+            "type": "url",
+            "id": "link",
+            "label": "Link"
+          },
+          {
+            "type": "select",
+            "id": "alignment",
+            "label": "Text alignment",
+            "default": "",
+            "options": [
+              { "value": "", "label": "Left" },
+              { "value": "text-center", "label": "Center" },
+              { "value": "text-end", "label": "Right" }
+            ]
+          },
+          {
+            "type": "text",
+            "id": "title",
+            "label": "Heading",
+            "default": "Title here"
+          },
+          {
+            "type": "richtext",
+            "id": "body",
+            "label": "Description"
+          },
+          {
+            "type": "color",
+            "id": "text_color",
+            "label": "Text color",
+            "default": "rgba(0,0,0,0)"
+          }
+		]
+      }
+    ],
+    "presets": [
+      {
+        "name": "Image Grid",
+        "blocks": [
+          {
+            "type": "grid_block"
+          },
+          {
+            "type": "grid_block"
+          },
+          {
+            "type": "grid_block"
+          },
+          {
+            "type": "grid_block"
+          },
+          {
+            "type": "grid_block"
+          }
+        ]
+      }
+    ]
+  }
+{% endschema %}

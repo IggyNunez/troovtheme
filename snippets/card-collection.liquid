@@ -1,0 +1,27 @@
+{%- assign collection_selected = false -%}
+{%- assign collection_image = image | default:collection.image -%}
+
+{% if collection.products.size > 0 %}
+  {% unless collection.image %}
+    {%- assign collection_image = collection.products.first.featured_image -%}
+  {% endunless %}
+{% endif %}
+
+<div class="card product-card" id="item-{{collection.id}}">
+
+  <a href="{{ collection.url }}" class="card-img-container">
+    {% if collection_image != blank %}
+    	<img class="card-img-top lazyload" width="400" height="400" data-src="{{ collection_image | img_url:"800x800", crop:"center" }}" width="800" height="800" alt="{{ collection.title }}" title="{{ collection.title }}">
+    {% else %}
+    	{% capture current %}{% cycle 1, 2, 3, 4, 5, 6 %}{% endcapture %}
+    	{{ 'product-' | append: current | placeholder_svg_tag: 'placeholder-svg card-img-top' }}
+    {% endif %}
+  </a>
+  <div class="card-body">
+    <a href="{{ collection.url }}">
+      <h4 class="card-title">{{ title | default:collection.title }}</h4>
+    </a>
+    <a href="{{ product.url }}" class="btn btn-outline-primary">{{ 'collections.general.view_collection' | t }}</a>
+
+  </div>
+</div>

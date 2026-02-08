@@ -1,0 +1,185 @@
+<style>
+  {%- unless section.settings.color_bg == "rgba(0,0,0,0)" -%}#section-{{ section.id }} {  background-color: {{ section.settings.color_bg }}!important; }{%- endunless -%}
+  {%- unless section.settings.color_title == "rgba(0,0,0,0)" -%}#section-{{ section.id }} h2 {  color: {{ section.settings.color_title }}!important; }{%- endunless -%}
+</style>
+
+<section class="newsletter" id="section-{{ section.id }}">
+  {% if section.settings.image != blank %}
+  <div class="background-image-holder">
+    <picture>
+      <source media="(max-width: 400px)" srcset="{%- if section.settings.image_xs -%}{{ section.settings.image_xs | img_url: '400x' }}{%- else -%}{{ section.settings.image | img_url: '400x' }}{%- endif -%}">      
+      <source media="(max-width: 576px)"srcset="{%- if section.settings.image_xs -%}{{ section.settings.image_xs | img_url: '580x' }}{%- else -%}{{ section.settings.image | img_url: '580x' }}{%- endif -%}">
+      <source media="(max-width: 992px)" srcset="{{ section.settings.image | img_url: '990x' }}">              
+      <img src="{{ section.settings.image | img_url: '1200x' }}" class="img-fluid lazyload">
+    </picture>
+  </div>
+  {% endif %}
+  <div class="container{%- if section.settings.fluid_section -%}-fluid{%- endif -%}">
+    <div class="content {{ section.settings.text_alignment }}">
+      {% if section.settings.title != blank %}
+      <{{ section.settings.header_tag }}>{{ section.settings.title | escape }}</{{ section.settings.header_tag }}>
+      {% endif %}
+      {% if section.settings.body != blank %}
+      <p class="lead">{{ section.settings.body | escape }}</p>
+      {% endif %}
+    </div>
+    <div class="text-center">
+      {% form 'customer' %}
+      <input type="hidden" name="contact[tags]" value="newsletter">
+      {{ form.errors | default_errors }}
+      {% if form.posted_successfully? %}
+      <p class="lead">{{ 'general.newsletter_form.confirmation' | t }}</p>
+      {% else %}
+
+      <div class="input-group form-floating mb-3 w-50 mx-auto">
+        <input type="email" class="form-control" id="newsletterEmail" name="contact[email]" value="{% if customer %}{{ customer.email }}{% endif %}" placeholder="{{ 'general.newsletter_form.email_placeholder' | t }}" aria-label="{{ 'general.newsletter_form.email_placeholder' | t }}" aria-describedby="newsletterButton" autocorrect="off" autocapitalize="off">
+        <label for="newsletterEmail">Email address</label>
+        <button type="submit"class="btn btn-primary" id="newsletterButton">{{ 'general.newsletter_form.submit' | t }}</button>
+      </div>
+
+      {% endif %}
+      {% endform %}
+    </div>
+  </div>
+</section>
+
+{% schema %}
+  {
+    "name": "Newsletter",
+    "settings": [
+      {
+        "type": "checkbox",
+        "id": "fluid_section",
+        "label": "Borderless container",
+        "default": false
+      },
+      {
+        "type": "header",
+        "content": "Background"
+      },
+      {
+      	"type": "color",
+      	"id": "color_bg",
+      	"label": "Background color",
+      	"default": "#F7F7F7"
+      },
+      {
+        "type": "text",
+        "id": "anchor_id",
+        "label": "Section Anchor ID"
+      },
+      {
+        "type": "text",
+        "id": "class",
+        "label": "Custom class"
+      },
+      {
+        "type": "image_picker",
+        "id": "image",
+        "label": "Background image (optional)",
+        "info": "Recommend min 2000px wide"
+      },
+      {
+        "type": "image_picker",
+        "id": "image_xs",
+        "label": "Mobile Background image (optional)",
+        "info": "Recommend min 500px wide"
+      },
+      {
+        "type": "header",
+        "content": "Content"
+      },
+      {
+        "type": "select",
+        "id": "text_alignment",
+        "label": "Text alignment",
+        "default": "",
+        "options": [
+          { "value": "", "label": "Left" },
+          { "value": "text-center", "label": "Center" },
+          { "value": "text-right", "label": "Right" }
+        ]
+      },
+      {
+        "type": "text",
+        "id": "title",
+        "label": "Title",
+		"default": "Subscribe to our newsletter"
+      },
+      {
+        "type": "select",
+        "id": "header_tag",
+        "label": "Title Tag Type",
+         "options": [
+            { "value": "h1", "label": "h1"},
+			{ "value": "h2", "label": "h2"},
+            { "value": "h3", "label": "h3"},
+			{ "value": "h4", "label": "h4"}
+         ],
+		"default": "h2"
+      },
+      {
+        "type": "color",
+        "id": "color_title",
+        "label": "Title color",
+        "default": "#777777"
+      },
+      {
+        "type": "textarea",
+        "id": "body",
+        "label": "Body",
+        "default": "A short sentence describing what someone will receive by subscribing"
+      },
+      {
+        "type": "color",
+        "id": "color_body",
+        "label": "Body color",
+        "default": "#777777"
+      },
+      {
+        "type": "header",
+        "content": "Button"
+      },
+      {
+        "type": "url",
+        "id": "cta_link",
+        "label": "Button Link",
+        "info": "Button will only show if a link is assigned",
+        "default": "/"
+      },
+      {
+        "type": "text",
+        "id": "cta_label",
+        "label": "Button Label",
+        "default": "Get this thing"
+      },
+      {
+         "type": "select",
+         "id": "button_theme",
+		 "label": "Button Style",
+         "options": [
+            { "value": "btn-primary", "label": "Primary"},
+			{ "value": "btn-outline-primary", "label": "Primary Outline"},
+            { "value": "btn-secondary", "label": "Secondary"},
+			{ "value": "btn-outline-secondary", "label": "Secondary Outline"}
+         ],
+		 "default": "btn-primary"
+      },
+      {
+         "type": "select",
+         "id": "button_size",
+		 "label": "Button Size",
+         "options": [
+            { "value": "", "label": "Normal"},
+			{ "value": "btn-lg", "label": "Large"},
+            { "value": "btn-sm", "label": "Small"}
+         ],
+         "default": ""
+      },
+      {
+        "type": "paragraph",
+        "content": "Any customers who sign up will have an account created for them in Shopify. [View customers](/admin/customers?query=&accepts_marketing=1)"
+      }
+    ]
+  }
+{% endschema %}

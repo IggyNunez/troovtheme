@@ -1,0 +1,55 @@
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const targetProductHandle = 'ben';
+    const targetVariantIds = ['49162201039079', '49162201006311', '49162201071847', '49162200940775'];
+    
+    function checkAndApplyStyles() {
+      const currentURL = window.location.href;
+      const isTargetProduct = currentURL.includes(`/products/${targetProductHandle}`);
+      const currentVariantId = new URL(currentURL).searchParams.get('variant');
+      
+      const styleElement = document.getElementById('dynamic-product-styles');
+      if (isTargetProduct && targetVariantIds.includes(currentVariantId)) {
+        if (!styleElement) {
+          const style = document.createElement('style');
+          style.id = 'dynamic-product-styles';
+          style.textContent = `
+            .btn-primary:enabled {
+              display: none !important;
+              background-color: #bbb !important;
+              border-color: #bbb !important;
+            }
+            section.product-header .buy-actions > div:first-child > div {
+              padding: 1em 2rem !important;
+            }
+          `;
+          document.head.appendChild(style);
+        }
+      } else if (styleElement) {
+        styleElement.remove();
+      }
+    }
+
+    // Initial check
+    checkAndApplyStyles();
+
+    // Watch for URL changes (for when variants are selected)
+    const observer = new MutationObserver(function(mutations) {
+      if (location.href !== lastUrl) {
+        lastUrl = location.href;
+        checkAndApplyStyles();
+      }
+    });
+
+    const config = {subtree: true, childList: true};
+    observer.observe(document, config);
+
+    // Store the current URL
+    let lastUrl = location.href;
+
+    // Also check when the history state changes (for pushState/replaceState)
+    window.addEventListener('popstate', checkAndApplyStyles);
+  });
+
+
+</script>

@@ -1,0 +1,64 @@
+<ul class="navbar-nav tier-1" id="navbar-tier-1">
+  {% for link in linklists[section.settings.linklist_1].links %}
+  {%- assign child_list_handle = link.title | handleize -%}
+  {%- assign has_grandchildren = false -%}
+  {%- if link.levels == 2 -%}
+  {%- assign has_grandchildren = true -%}
+  {%- endif -%}
+
+  {%- if link.links != blank -%}
+  <li class="nav-item dropdown position-static{% if link.active %} active{% endif %}" data-level=1 aria-has-popup="true" aria-controls="dropdown-{{ link.title | handleize }}">
+    <a href="javascript:void(0);" class="nav-link dropdown-toggle" id="dropdown-{{ link.title | handleize }}">
+      {{ link.title }}
+      <span class="d-none">{{ 'layout.navigation.expand' | t }}</span>
+    </a>
+    <div class="dropdown-menu" aria-labelledby="dropdown-{{ link.title | handleize }}" aria-expanded="false">
+      <a href="javascript:void(0);" class="menu-back">Back</a>
+      <div class="navbar-nav tier-2" id="navbar-tier-2">
+        {%- for childlink in link.links -%}
+          {%- if childlink.links.size > 0 -%}
+          <div class="nav-item dropdown {% if childlink.active %} active{% endif %}" data-level=2 aria-has-popup="true" aria-controls="dropdown-{{ childlink.title | handleize }}">
+            <a href="{{ childlink.url }}" class="nav-link dropdown-toggle" id="dropdown-{{ childlink.title | handleize }}" role="button" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+              {{ childlink.title }}
+              <span class="d-none">{{ 'layout.navigation.expand' | t }}</span>
+            </a>
+
+            <div class="dropdown-menu" aria-labelledby="dropdown-{{ childlink.title | handleize }}" aria-expanded="false">
+              <ul class="navbar-nav tier-3" id="navbar-tier-3">
+                {%- for grandchildlink in childlink.links -%}
+                <li class="nav-item {% if link.active %} active{% endif %}">
+                  {% assign object = grandchildlink.object  %}
+                  {% assign object_image = object.image | default: object.metafields["global"]["navigation_image"] %}
+                  {% if object and object_image != blank %}
+                  <div class="img-container"><img data-src="{%- if object_image contains "https" -%}{{ object_image }}{%- else -%}{{ object_image | img_url: "300x100", crop:"center" }}{%- endif -%}" width="300" height="100" class="d-none d-lg-block lazyload" /></div>
+                  {% endif %}
+                  
+                  <a href="{{ grandchildlink.url }}" class="nav-link">{{ grandchildlink.title }}</a>
+                </li>
+                {%- endfor -%}
+              </ul>
+
+            </div>
+          </div>
+          {%- else -%}
+          <div class="nav-item{% if childlink.active %} active{% endif %}">
+            {% assign object = childlink.object  %}
+            {% assign object_image = object.image | default: object.metafields["global"]["navigation_image"] %}
+            {% if object and object_image != blank %}
+            <div class="img-container"><img data-src="{%- if object_image contains "https" -%}{{ object_image }}{%- else -%}{{ object_image | img_url: "300x100", crop:"center" }}{%- endif -%}" width="300" height="100" class="d-none d-lg-block lazyload" /></div>
+            {% endif %}
+            <a href="{{ childlink.url }}" class="nav-link">{{ childlink.title }}</a>
+          </div>
+          {%- endif -%}
+        {%- endfor -%}
+      </div>
+
+    </div>
+  </li>
+  {%- else -%}
+  <li class="nav-item {% if link.active %} active{% endif %}">
+    <a href="{{ link.url }}" class="nav-link">{{ link.title }}</a>
+  </li>
+  {%- endif -%}
+  {%- endfor -%}
+</ul>

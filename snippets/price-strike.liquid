@@ -1,0 +1,132 @@
+<script> document.addEventListener('DOMContentLoaded', function() {
+    const targetProductHandle = 'ben';
+    const targetVariantIds = ['49162201039079', '49162201006311', '49162201071847', '49162200940775'];
+    
+    function updatePriceDisplay() {
+        const priceElements = document.querySelectorAll('span.product-price[product-price]');
+        priceElements.forEach(el => {
+            // Get the current price text and clean it
+            const priceText = el.textContent.trim();
+            const originalPrice = parseFloat(priceText.replace(/[^0-9.]/g, ''));
+            
+            if (!isNaN(originalPrice)) {
+                // Calculate discounted price
+                const discountedPrice = (originalPrice * 0.7).toFixed(2); // 30% off
+                
+                // Style original price
+                el.style.fontWeight = '700';
+                el.style.fontSize = '2rem';
+                el.style.color = '#78cd00';
+                el.style.textDecoration = 'line-through';
+                
+                // Remove existing discounted price element if it exists
+                const existingDiscount = el.nextElementSibling;
+                if (existingDiscount?.classList.contains('discounted-price')) {
+                    existingDiscount.remove();
+                }
+                
+                // Create and add new discounted price element
+                const discountElement = document.createElement('span');
+                discountElement.className = 'discounted-price';
+                discountElement.textContent = ` $${discountedPrice}`;
+                discountElement.style.color = '#ff0000';
+                discountElement.style.fontWeight = '700';
+                discountElement.style.fontSize = '2rem';
+                el.parentNode.insertBefore(discountElement, el.nextSibling);
+            }
+        });
+    }
+
+    function checkAndApplyStyles() {
+        const currentURL = window.location.href;
+        const isTargetProduct = currentURL.includes(`/products/${targetProductHandle}`);
+        const currentVariantId = new URL(currentURL).searchParams.get('variant');
+        
+        const styleElement = document.getElementById('dynamic-price-styles');
+        if (isTargetProduct && targetVariantIds.includes(currentVariantId)) {
+            if (!styleElement) {
+                const style = document.createElement('style');
+                style.id = 'dynamic-price-styles';
+                style.textContent = `
+                    span.product-price[product-price] {
+                        font-weight: 700 !important;
+                        font-size: 2rem !important;
+                        color: #78cd00 !important;
+                        text-decoration: line-through !important;
+                    }
+                `;
+                document.head.appendChild(style);
+            }
+            updatePriceDisplay();
+        } else if (styleElement) {
+            styleElement.remove();
+            // Remove styles and discounted prices
+            const priceElements = document.querySelectorAll('span.product-price[product-price]');
+            priceElements.forEach(el => {
+                el.style.removeProperty('font-weight');
+                el.style.removeProperty('font-size');
+                el.style.removeProperty('color');
+                el.style.removeProperty('text-decoration');
+                
+                // Remove discounted price element if it exists
+                const discountElement = el.nextElementSibling;
+                if (discountElement?.classList.contains('discounted-price')) {
+                    discountElement.remove();
+                }
+            });
+        }
+    }
+
+    // Initial check
+    checkAndApplyStyles();
+
+    // Watch for URL changes (for when variants are selected)
+    const observer = new MutationObserver(function(mutations) {
+        if (location.href !== lastUrl) {
+            lastUrl = location.href;
+            checkAndApplyStyles();
+        }
+    });
+    const config = {subtree: true, childList: true};
+    observer.observe(document, config);
+
+    // Store the current URL
+    let lastUrl = location.href;
+
+    // Check when the history state changes (for pushState/replaceState)
+    window.addEventListener('popstate', checkAndApplyStyles);
+
+    // Add variant change listener for dynamic updates
+    document.addEventListener('variant:change', function(event) {
+        if (event.detail && event.detail.variant) {
+            const variantId = event.detail.variant.id.toString();
+            if (targetVariantIds.includes(variantId)) {
+                setTimeout(updatePriceDisplay, 100); // Small delay to ensure price is updated
+            }
+        }
+    });
+
+    // Additional price update listeners
+    const priceObserver = new MutationObserver(function(mutations) {
+        mutations.forEach(function(mutation) {
+            if (mutation.type === 'characterData' || mutation.type === 'childList') {
+                const currentURL = window.location.href;
+                const isTargetProduct = currentURL.includes(`/products/${targetProductHandle}`);
+                const currentVariantId = new URL(currentURL).searchParams.get('variant');
+                
+                if (isTargetProduct && targetVariantIds.includes(currentVariantId)) {
+                    updatePriceDisplay();
+                }
+            }
+        });
+    });
+
+    // Observe price elements for changes
+    document.querySelectorAll('span.product-price[product-price]').forEach(el => {
+        priceObserver.observe(el, {
+            characterData: true,
+            childList: true,
+            subtree: true
+        });
+    });
+});</script>

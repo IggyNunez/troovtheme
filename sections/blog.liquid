@@ -1,0 +1,214 @@
+{%- unless blog != blank -%}
+{%- assign blog = blogs[section.settings.blog] -%}
+{%- endunless -%}
+
+{% case section.settings.grid %}
+{% when 2 %}
+{%- assign grid_item_width = 'col-12 cold-md-6' -%}
+{% when 3 %}
+{%- assign grid_item_width = 'col-12 col-md-4' -%}
+{% when 4 %}
+{%- assign grid_item_width = 'col-12 col-md-3' -%}
+{% when 6 %}
+{%- assign grid_item_width = 'col-12 col-md-2' -%}
+{% endcase %}
+
+{%- assign list_limit = section.settings.grid | times: section.settings.rows | defualt: 8 -%}
+
+<style>
+  {%- unless section.settings.color_bg == "rgba(0,0,0,0)" -%}#section-{{ section.id }} {  background-color: {{ section.settings.color_bg }}!important; }{%- endunless -%}
+  {%- unless section.settings.color_title == "rgba(0,0,0,0)" -%}#section-{{ section.id }} h2 {  color: {{ section.settings.color_title }}!important; }{%- endunless -%}
+</style>
+
+{%- if section.settings.anchor_id -%}<a name="{{section.settings.anchor_id}}" class="anchor"></a>{%- endif -%}
+<section class="blog" id="section-{{ section.id }}">
+  <div class="container{%- if section.settings.fluid_section -%}-fluid{%- endif -%}">
+    
+    {% if section.settings.title_show or section.settings.description_show %}
+    <div class="content {{ section.settings.alignment }}">
+      {%- if section.settings.title_show -%}
+      <{{ section.settings.header_tag }}>{{ section.settings.title_override | default:blog.title  }}</{{ section.settings.header_tag }}>
+      {%- endif -%}
+
+      {%- if section.settings.description_show -%}
+      <div>{{ section.settings.description_override | default:blog.description }}</div>
+      {%- endif -%}
+
+      {%- if section.settings.show_filters -%}
+      <div class="filters w-25 mx-auto">
+        <select class="form-select form-select-lg mb-3" name="filters" onchange="if (this.value) { window.location.href = '{{blog.url}}/tagged/'+this.value } else { window.location.href = '{{blog.url}}' };">
+          <option value="">All</option>
+          {% for tag in blog.tags %}
+          <option value="{{tag}}"{% if current_tags contains tag %} selected{% endif %}>{{ tag }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      {%- endif -%}
+    </div>
+    {%- endif -%}
+
+    <div class="row item-grid justify-content-center g-4">
+      {% for article in blog.articles limit: list_limit %}
+        <div class="{{ grid_item_width }} item--{{section.id}}">
+          {% render 'card-article', article: article %}
+        </div>
+      {% endfor %}
+    </div>
+    
+    {%- if section.settings.cta_link != blank and section.settings.cta_label != blank -%}
+    <a href="{{ section.settings.cta_link }}" class="btn {{ section.settings.cta_theme }} view-more-button list-{{section.id}} text-center">{{ section.settings.cta_label }}</a>
+	{%- endif -%}
+  </div>
+</section>
+
+
+{% schema %}
+  {
+    "name": "Featured Blog",
+	"settings": [
+      {
+        "type": "checkbox",
+        "id": "fluid_section",
+        "label": "Fluid container",
+        "default": false
+      },
+      {
+      	"type": "color",
+      	"id": "color_bg",
+      	"label": "Background color",
+      	"default": "rgba(0,0,0,0)"
+      },
+      {
+        "type": "header",
+        "content": "Layout"
+      },
+      {
+        "type": "blog",
+        "id": "blog",
+        "label": "Blog"
+      },
+      {
+        "type": "range",
+        "id": "grid",
+        "min": 2,
+        "max": 6,
+        "step": 1,
+        "label": "Items per row",
+        "default": 3
+      },
+      {
+        "type": "range",
+        "id": "rows",
+        "min": 1,
+        "max": 6,
+        "step": 1,
+        "label": "Item rows",
+        "default": 1
+      },
+      {
+        "type": "header",
+        "content": "Content"
+      },
+      {
+        "type": "checkbox",
+        "id": "show_filters",
+        "label": "Show Filters",
+        "default": true
+      },
+      {
+        "type": "select",
+        "id": "alignment",
+        "label": "Text Alignment",
+        "default": "",
+        "options": [ 
+		  { "value": "", "label": "Left" },
+          { "value": "text-center", "label": "Center" },
+          { "value": "text-right", "label": "Right" }
+        ]
+      },
+      {
+        "type": "checkbox",
+        "id": "title_show",
+        "label": "Show Title",
+        "default": true
+      },
+      {
+        "type": "select",
+        "id": "header_tag",
+        "label": "Title Tag Type",
+        "default": "h2",
+        "options": [ 
+		  { "value": "h1", "label": "h1" },
+          { "value": "h2", "label": "h2" },
+          { "value": "h3", "label": "h3" },
+          { "value": "h4", "label": "h4" }
+        ]
+      },
+      {
+        "type": "color",
+        "id": "color_title",
+        "label": "Title color",
+        "default": "rgba(0,0,0,0)"
+      },
+      {
+        "type": "text",
+        "id": "title_override",
+        "label": "Override Title with"
+      },
+      {
+        "type": "checkbox",
+        "id": "description_show",
+        "label": "Show Description",
+        "default": true
+      },
+      {
+        "type": "richtext",
+        "id": "description_override",
+        "label": "Override Description with"
+      },
+      {
+        "type": "header",
+        "content": "Browse All Button"
+      },
+      {
+        "type": "url",
+        "id": "cta_link",
+        "label": "Button Link",
+        "info": "Button will only show if a link is assigned"
+      },
+      {
+        "type": "text",
+        "id": "cta_label",
+        "label": "Button Label",
+        "default": "View more"
+      },
+      {
+        "type": "select",
+        "id": "cta_theme",
+        "label": "Button Style",
+        "options": [
+          { "value": "btn-primary", "label": "Primary"},
+          { "value": "btn-outline-primary", "label": "Primary Outline"},
+          { "value": "btn-secondary", "label": "Secondary"},
+          { "value": "btn-outline-secondary", "label": "Secondary Outline"}
+        ],
+        "default": "btn-outline-secondary"
+      },
+      {
+        "type": "select",
+        "id": "cta_size",
+        "label": "Button Size",
+        "options": [
+          { "value": "", "label": "Normal"},
+          { "value": "btn-lg", "label": "Large"},
+          { "value": "btn-sm", "label": "Small"}
+        ],
+        "default": ""
+      }
+	],
+    "presets": [{
+      "name": "Featured Blog",
+      "category": "Media"
+    }]
+  }
+{% endschema %}

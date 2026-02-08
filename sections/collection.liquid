@@ -1,0 +1,551 @@
+{%- assign collection = collections[section.settings.collection] | default:collection -%}
+
+{%- assign variant_filter = section.settings.filter_variant | handleize | strip -%}
+{%- assign product_limit = section.settings.grid | times: section.settings.rows -%}
+
+{% case section.settings.grid %}
+{% when 2 %}
+{%- assign grid_item_width = 'col-6' -%}
+{% when 3 %}
+{%- assign grid_item_width = 'col-6 col-md-4' -%}
+{% when 4 %}
+{%- assign grid_item_width = 'col-6 col-md-3' -%}
+{% when 6 %}
+{%- assign grid_item_width = 'col-6 col-md-2' -%}
+{% endcase %}
+
+{% if template == 'collection' %}
+{% assign show_filter = collection.metafields["global"]["show_filter"] %}
+{% assign filter_options = collection.metafields["global"]["filter_options"] %}
+{% else %}
+{% assign show_filter = section.settings.filter_show %}
+{% assign filter_options = section.settings.filter_options_override %}
+{% endif %}
+
+<style>
+  {%- unless section.settings.color_bg == "rgba(0,0,0,0)" -%}#section-{{ section.id }} {  background-color: {{ section.settings.color_bg }}!important; }{%- endunless -%}
+  {%- unless section.settings.color_title == "rgba(0,0,0,0)" -%}#section-{{ section.id }} .content.header .title {  color: {{ section.settings.color_title }}!important; }{%- endunless -%}
+</style>
+
+{%- if section.settings.anchor_id -%}<a name="{{ section.settings.anchor_id }}" class="anchor"></a>{%- endif -%}
+<section class="collection{% if section.settings.show_carousel != blank %} carousel {{ section.settings.show_carousel }}{% endif %}" id="section-{{ section.id }}">
+  <div class="container{%- if section.settings.fluid_section -%}-fluid{%- endif -%}">
+    
+    {%- if section.settings.title_show or section.settings.description_show -%}
+    <div class="content header {{ section.settings.header_alignment }}">
+      {%- if section.settings.show_breadcrumbs -%} {% render 'breadcrumbs' %} {%- endif -%}
+      {%- if section.settings.title_show -%}
+      <{{ section.settings.header_tag }} class="title">{{ section.settings.title | default: collection.title }}</{{ section.settings.header_tag }}>
+      {%- endif -%}
+
+      {%- if section.settings.description_show -%}
+      <div>{{ section.settings.description | default: collection.description }}</div>
+      {%- endif -%}
+    </div>
+    {%- endif -%}
+
+    <div class="d-flex flex-column flex-lg-row">
+      
+      {%- if show_filter and show_filter != "false" -%}
+        {%- assign searchable_tags = collection.all_tags | join:', ' -%}
+        {%- assign filter_options = filter_options | default: settings.products_grid_filter_options | split: ',' -%}
+
+      <div class="product-filters collapse sticky-md-top" data-current-tags="{{ current_tags | join:"+" }}" data-collection-url="{{ collection.url }}" id="filterContainer">
+        <div class="d-flex flex-wrap flex-row flex-lg-column align-items-start">
+          {% for filter_option in filter_options %}
+          {%- if searchable_tags contains filter_option -%}
+          <div class="filter-{{ filter_option | handle }}">
+            <label>{{ filter_option }}: <button class="clear-filter-group btn btn-sm btn-outline-secondary" data-filter-group="{{ filter_option | handle }}">clear</button></label>
+            {%- for tag in collection.all_tags -%} 
+            {%- if tag contains filter_option -%}
+            
+            <div class="form-check">
+              <input class="form-check-input" type="radio" value="{{ tag | handle }}" name="{{ filter_option | handle }}" id="{{ tag | handle }}"{% if current_tags contains tag %} checked {% endif %}>
+              {%- if filter_option == "Color" -%}
+              <label class="form-check-label swatch" for="{{ tag | handle }}" title="{{ tag | remove: filter_option | remove: ':' }}" aria-label="{{ tag | remove: filter_option | remove: ':' }}" style="background-color:{{ tag | remove: filter_option | remove: ':' }}; background-image: url({{  tag | remove: filter_option | remove: ':' | handle | append: '.png' | asset_url }})">
+                {%- if current_tags contains tag -%}{% render 'icon-check' %}{%- else -%}&nbsp;{%- endif -%}
+              </label>
+              {%- else -%}
+              <label class="form-check-label" for="{{ tag | handle }}" title="{{ tag | remove: filter_option | remove: ':' }}" >{{ tag | remove: filter_option | remove: ':' }}</label>
+              {%- endif -%}
+            </div>
+            {%- endif -%}
+            {%- endfor -%}
+          </div>
+          {%- endif -%}
+
+          {% endfor %}
+        </div>
+      </div>
+      
+        {% comment %}
+        Loop through all Color groups to assocaite the corrent variant_filters based on the COlor group filtered.
+      	These groups are set under Theme Settings -> Product Catalog -> Product Color Groups
+        {% endcomment %}
+        {%- for i in (1..15) -%}
+          {% capture color_group_title %}color_group_{{i}}_title{% endcapture %}
+          {% capture color_group_colors %}color_group_{{i}}_colors{% endcapture %}
+
+          {%- assign current_group_title = settings[color_group_title] | prepend: "Color:" -%}
+          {%- if current_tags contains current_group_title -%}
+              {%- assign variant_filter = settings[color_group_colors] -%}
+              {% break %}
+          {%- endif -%}
+        {%- endfor -%}
+
+      {%- endif -%}
+    
+      <div class="flex-grow-1">
+        {%- if collection.products.size > 0 -%}
+        <div class="row product-grid no-gutters grid-{{ section.id }}" data-list-id="{{ section.id }}" data-list-limit="{{ product_limit }}"{% if section.settings.show_carousel != blank %} data-slider-display="{{ section.settings.show_carousel }}" data-slider-slides="{{ section.settings.slides_to_show }}" data-slider-dots="{{ section.settings.carousel_dots }}" data-slider-arrows="{{ section.settings.carousel_arrows }}"{% endif %}>
+          {%- assign block_count = 0 -%}
+          {%- for product in collection.products -%}
+          
+          	{%- if block_count == product_limit -%}{% break %}{%- endif -%}
+  
+            {%- unless product.tags contains settings.exclude_tags -%}
+
+              {%- if section.settings.show_variants -%}
+                {%- for variant in product.variants -%}
+				 
+                  {%- for block in section.blocks -%}
+          			{%- assign block_position = block.settings.position | minus:1 -%}
+                    {%- if block_position == block_count -%}
+                      <div class="{{ grid_item_width }}">
+                        {%- render 'card-content', card:block.settings, section: section.settings -%}
+                      </div>
+                      {%- assign block_count = block_count | plus:1 -%}
+                    {%- endif -%}
+                  {%- endfor -%}
+
+                  {%- if variant_filter.size > 1 -%}
+                    {%- assign variant_handle = variant.title | remove:"Regular" | remove:"Large" | remove:"/" | strip -%}
+                    {%- if variant_filter contains variant_handle -%}
+                      <div class="{{ grid_item_width }} item--{{section.id}}">
+                        {% render 'card-product', product:product, variant: variant %}
+                      </div>
+                    {%- endif -%}
+                  {%- else -%}
+                    <div class="{{ grid_item_width }} item--{{section.id}}">
+                      {% render 'card-product', product:product, variant: variant %}
+                    </div>
+                  {%- endif -%}
+          
+ 				  {% assign block_count = block_count | plus:1 %}
+                  {%- if block_count == product_limit -%}{% break %}{%- endif -%}
+                  
+                {%- endfor -%}
+              {%- else -%}
+
+                {%- for block in section.blocks -%}
+                  {%- if block.settings.position == block_count -%}
+                    <div class="{{ grid_item_width }}">
+                      {%- render 'card-content', card:block.settings, section: section.settings -%}
+                    </div>
+                    {%- assign block_count = block_count | plus:1 -%}
+                    {%- assign product_limit = product_limit | minus:1 -%}
+                  {%- endif -%}
+                {%- endfor -%}
+
+                <div class="{{ grid_item_width }} item--{{section.id}}">
+                  {% render 'card-product', product:product, variant: variant %}
+                </div>
+          		{%- assign block_count = block_count | plus:1 -%}
+                {%- if block_count > product_limit -%}{% break %}{%- endif -%}
+              {%- endif -%}
+          
+            {%- endunless -%}
+          {%- endfor -%}      
+          </div>
+          <a class="btn {{ section.settings.view_all_theme }} {{ section.settings.view_all_size }} text-center view-more-button"{% if section.settings.view_all_link != blank %} href="{{ section.settings.view_all_link }}"{% else %} data-list-id="{{ section.id }}" style="display:none;"{% endif %}>{{ section.settings.view_all_label }}</a>
+        {%- else -%}
+          <div class="alert alert-warning text-center w-100 py-4">
+            <p>No products match your results. Please change your search.</p>
+             <a href="{{ collection.url }}#products" class="btn btn-outline-secondary mt-4">click here to reset search</a>
+          </div>
+        {%- endif -%}
+      </div>
+    </div>
+  </div>
+</section>
+
+{% javascript %}
+
+  var product_grid = jQuery('.collection .product-grid');
+  product_grid.each(function() {
+
+    var items_to_show = parseInt(jQuery(this).data('list-limit')); // index starts at zero
+    var total_items = jQuery(this).find('> div').length;
+    var view_more_button = jQuery(this).parent().find('.view-more-button:not([href])');
+
+    if( items_to_show < total_items && view_more_button.length > 1 ) {
+      items_to_show = items_to_show - 1;
+      view_more_button.show();
+      jQuery(this).find('> div:gt('+items_to_show+')').hide();
+      jQuery(this).show();
+      
+      view_more_button.click(function () {
+        var list_target = '.grid-'+jQuery(this).data('list-id');
+        jQuery(list_target+' div').show();
+        jQuery(this).hide();
+      });
+    }
+
+  });
+
+  jQuery('.collection .product-filters :radio').on('change', function () {
+
+    var current_tags = jQuery('.product-filters').data('current-tags');
+    var tag_arr = current_tags.split('+');
+    var selected_group = jQuery(this).attr('name');
+    var new_tag = "";
+
+    jQuery(tag_arr).each(function(i) {
+      var handlize_tag = tag_arr[i].toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/-$/, '').replace(/^-/, '');
+      if( !handlize_tag.includes(selected_group) ) {
+        new_tag += handlize_tag + "+";
+      }
+    });
+
+    new_tag += jQuery(this).attr('value');
+
+    var url = jQuery('.collection .product-filters').data('collection-url') +"/"+ new_tag +"#products";
+    window.location.href = url;
+
+  });
+
+  jQuery('.collection .product-filters button.clear-filter-group').on('click', function () {
+
+    var current_tags = jQuery('.product-filters').data('current-tags');
+    var tag_arr = current_tags.split('+');
+    var selected_group = jQuery(this).data('filter-group');
+    var new_tag = "";
+
+    jQuery(tag_arr).each(function(i) {
+      var handlize_tag = tag_arr[i].toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/-$/, '').replace(/^-/, '');
+      if( !handlize_tag.includes(selected_group) ) {
+        new_tag += handlize_tag + "+";
+      }
+    });
+
+    var url = jQuery('.collection .product-filters').data('collection-url') +"/"+ new_tag +"#products";
+    window.location.href = url;
+
+  });
+
+  var collection_carousel = jQuery('.collection.carousel .product-grid');
+  var carousel_display = collection_carousel.data('slider-display');
+  if(collection_carousel.length > 0 ) {
+    if(carousel_display == 'all' || ( carousel_display == 'mobile' && parseInt(jQuery(window).width()) < 900) ) {
+      collection_carousel.not('.slick-initialized').slick({
+        slidesToShow: collection_carousel.data('slider-slides'),
+        slidesToScroll: 1,
+        arrows: collection_carousel.data('slider-arrows'),
+        dots: collection_carousel.data('slider-dots'),
+        infinite: false,
+        responsive: [
+          {
+            breakpoint: 768,
+            settings: {
+              slidesToShow: 1                                                                             
+            }
+          }
+        ]
+      });
+    };
+  };
+{% endjavascript %}
+
+{% schema %}
+  {
+    "name": "Collection",
+	"settings": [
+    {
+      "type": "checkbox",
+      "id": "fluid_section",
+      "label": "Borderless container",
+      "default": false
+    },
+    {
+      "type": "color",
+      "id": "color_bg",
+      "label": "Background color",
+      "default": "rgba(0,0,0,0)"
+    },
+    {
+      "type": "text",
+      "id": "anchor_id",
+      "label": "Section Anchor ID"
+    },
+    {
+      "type": "text",
+      "id": "class",
+      "label": "Custom class"
+    },
+    {
+      "type": "header",
+      "content": "Collection Settings"
+    },
+    {
+      "type": "collection",
+      "id": "collection",
+      "label": "Collection",
+      "info": "Required"
+    },
+    {
+      "type": "checkbox",
+      "id": "filter_show",
+      "label": "Show Filter Panel",
+      "default": true
+    },
+    {
+      "type": "text",
+      "id": "filter_options_override",
+      "label": "Filter Options",
+      "info": "if not set, sitewide options will be used"
+      },
+    {
+      "type": "text",
+      "id": "filter_variant",
+      "label": "Variant Filter",
+      "info": "Enter variant title to filter by"            
+    },
+    {
+      "type": "range",
+      "id": "grid",
+      "min": 2,
+      "max": 6,
+      "step": 1,
+      "label": "Products per row",
+      "default": 3
+    },
+    {
+      "type": "range",
+      "id": "rows",
+      "min": 1,
+      "max": 6,
+      "step": 1,
+      "label": "Product rows",
+      "default": 1
+    },
+    {
+      "type": "checkbox",
+      "id": "show_variants",
+      "label": "Show variants",
+      "default": true
+    },
+      {
+        "type": "header",
+        "content": "Carousel"
+      },
+      {
+        "type": "select",
+        "id": "show_carousel",
+        "label": "Show Carousel",
+        "default": "",
+        "options": [
+          { "value": "", "label": "No" },
+          { "value": "all", "label": "Desktop + Mobile" },
+          { "value": " mobile", "label": "Mobile Only" }
+        ]
+	  },
+      {
+        "type": "range",
+        "id": "slides_to_show",
+        "label": "Slides to Show",
+        "min": 1,
+        "max": 4,
+        "step": 1,
+        "default": 2
+      },
+      {
+        "type": "checkbox",
+        "id": "carousel_arrows",
+        "label": "Show Arrows",
+        "default": true
+      },
+      {
+        "type": "checkbox",
+        "id": "carousel_dots",
+        "label": "Show Dots",
+        "default": false
+      },
+    {
+      "type": "header",
+      "content": "Header Content"
+    },
+    {
+      "type": "select",
+      "id": "header_alignment",
+      "label": "Alignment",
+      "default": "",
+      "options": [
+        { "value": "text-center", "label": "Center" },
+        { "value": "", "label": "Left" },
+        { "value": "text-end", "label": "Right" }
+      ]
+    },                                                                                                            
+    {
+      "type": "checkbox",
+      "id": "show_breadcrumbs",
+      "label": "Show Breadcrumbs",
+      "default": false
+    },
+    {
+      "type": "checkbox",
+      "id": "title_show",
+      "label": "Show Collection Title",
+      "default": true
+    },
+    {
+      "type": "color",
+      "id": "color_title",
+      "label": "Title color",
+      "default": "rgba(0,0,0,0)"
+    },
+    {
+      "type": "select",
+      "id": "header_tag",
+      "label": "Header Tag Type",
+      "default": "h2",
+      "options": [
+        { "value": "h1", "label": "h1" },
+        { "value": "h2", "label": "h2" },
+        { "value": "h3", "label": "h3" },
+        { "value": "h4", "label": "h4" }
+      ]
+    },
+    {
+      "type": "text",
+      "id": "title",
+      "label": "Override Title with"
+    },
+    {
+      "type": "checkbox",
+      "id": "description_show",
+      "label": "Show Collection Description",
+      "default": true
+    },
+    {
+      "type": "richtext",
+      "id": "description",
+      "label": "Override Description with"
+    },
+    {
+      "type": "header",
+      "content": "View All"
+    },
+    {
+      "type": "text",
+      "id": "view_all_label",
+      "label": "Button Label",
+      "default": "View All"
+    },
+    {
+      "type": "url",
+      "id": "view_all_link",
+      "label": "Button Link",
+      "info": "leave blank to use as 'view more'"
+    },
+    {
+      "type": "select",
+      "id": "view_all_theme",
+      "label": "Button Style",
+      "options": [
+        { "value": "btn-primary", "label": "Primary"},
+        { "value": "btn-outline-primary", "label": "Primary Outline"},
+        { "value": "btn-secondary", "label": "Secondary"},
+        { "value": "btn-outline-secondary", "label": "Secondary Outline"}
+      ],
+      "default": "btn-outline-primary"
+    },
+    {
+      "type": "select",
+      "id": "view_all_size",
+      "label": "Button Size",
+      "options": [
+        { "value": "", "label": "Normal"},
+        { "value": "btn-lg", "label": "Large"},
+        { "value": "btn-sm", "label": "Small"}
+      ],
+      "default": "btn-lg"
+    }
+	],
+    "blocks": [
+      {
+        "type": "card",
+        "name": "Image Card",
+        "settings": [
+          {
+            "type": "range",
+            "id": "position",
+            "min": 1,
+            "max": 12,
+            "step": 1,
+            "label": "Grid Position",
+            "default": 1
+          },
+          {
+            "type": "image_picker",
+            "id": "image",
+            "label": "Image"
+          },
+          {
+            "type": "image_picker",
+            "id": "image_xs",
+            "label": "Image (Mobile)"
+          },
+          {
+            "type": "text",
+            "id": "title",
+            "label": "Title"
+          },
+          {
+            "type": "richtext",
+            "id": "body",
+            "label": "Description"
+          },
+          {
+            "type": "url",
+            "id": "link",
+            "label": "Button URL",
+            "info": "Optional"
+          },
+          {
+            "type": "text",
+            "id": "link_label",
+            "label": "Button Label",
+            "default": "Learn More"
+          },
+          {
+            "type": "select",
+            "id": "link_theme",
+            "label": "Button Style",
+            "options": [
+              { "value": "btn-primary", "label": "Primary"},
+              { "value": "btn-outline-primary", "label": "Primary Outline"},
+              { "value": "btn-secondary", "label": "Secondary"},
+              { "value": "btn-outline-secondary", "label": "Secondary Outline"}
+            ],
+            "default": "btn-outline-primary"
+          },
+          {
+            "type": "select",
+            "id": "link_size",
+            "label": "Button Size",
+            "options": [
+              { "value": "", "label": "Normal"},
+              { "value": "btn-lg", "label": "Large"},
+              { "value": "btn-sm", "label": "Small"}
+            ],
+            "default": "btn-lg"
+          }
+        ]
+      }
+    ],
+    "presets": [{
+      "name": "Collection",
+      "category": "Product"
+    }]
+  }
+{% endschema %}

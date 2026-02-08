@@ -1,0 +1,39 @@
+<section>
+
+  <div class="container">
+    <div class="row justify-content-center">
+      
+      <div class="col-md-6 col-12">
+        <h1 class="pt-5">{{ 'customer.register.title' | t }}</h1>
+
+        {% form 'create_customer' %}
+        {{ form.errors | default_errors }}
+
+        <div class="form-floating mb-3">
+          <input type="email" name="customer[email]" class="form-control" id="emailInput" value="{{ form.email }}" placeholder="{{ 'customer.register.email' | t }}">
+          <label for="emailInput">{{ 'customer.register.email' | t }}</label>
+        </div>
+
+        <div class="form-floating mb-3">
+          <input type="text" name="customer[first_name]" value="{{ form.first_name }}" class="form-control" id="FirstName" placeholder="Enter your first name" {% if form.first_name %}value="{{ form.first_name }}"{% endif %}>
+          <label for="FirstName">{{ 'customer.register.first_name' | t }}</label>
+        </div>
+        
+        <div class="form-floating mb-3">
+          <input type="text" name="customer[last_name]" value="{{ form.last_name }}" class="form-control" id="LastName" placeholder="Enter your last name" {% if form.last_name %}value="{{ form.last_name }}"{% endif %}>
+          <label for="LastName">{{ 'customer.register.last_name' | t }}</label>
+        </div>
+        
+        <div class="form-floating mb-3">
+          <input type="password" name="customer[password]" class="form-control" id="Password" placeholder="Create a password">
+          <label for="Password">{{ 'customer.register.password' | t }}</label>
+        </div>
+ 
+        <button class="btn btn-primary btn-lg" type="submit">{{ 'customer.register.submit' | t }}</button>
+		<a href="/account/login" class="float-end">{{ 'customer.register.login' | t }}</a>
+        {% endform %}
+      </div>
+    </div>
+  </div>
+
+</section>

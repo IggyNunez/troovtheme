@@ -1,0 +1,210 @@
+{%- unless product.title -%}
+
+{%- endunless -%}
+
+{% case section.settings.grid %}
+{% when 2 %}
+{%- assign grid_item_width = 'col-12' -%}
+{% when 6 %}
+{%- assign grid_item_width = 'col-12 col-sm-6 col-lg-2' -%}
+{% else %}
+{%- assign grid_item_width = 'col-12 col-sm-6 col-lg-3' -%}
+{% endcase %}
+
+{%- assign product_limit = section.settings.grid | times: section.settings.rows -%}
+
+<style>
+  {%- unless section.settings.color_bg == "rgba(0,0,0,0)" -%}#section-{{ section.id }} {  background-color: {{ section.settings.color_bg }}!important; }{%- endunless -%}
+  {%- unless section.settings.color_title == "rgba(0,0,0,0)" -%}#section-{{ section.id }} .title {  color: {{ section.settings.color_title }}!important; }{%- endunless -%}
+</style>
+
+{%- if section.settings.anchor_id -%}<a name="{{section.settings.anchor_id}}" class="anchor"></a>{%- endif -%}
+<section class="product-recommendations" id="section-{{ section.id }}" data-url="{{ routes.product_recommendations_url }}?section_id={{ section.id }}&product_id={{ product.id }}&limit={{ product_limit | plus:4 }}">
+  <div class="container{%- if section.settings.fluid_section -%}-fluid{%- endif -%}">
+    
+    {% if section.settings.title != blank or section.settings.description != blank %}
+    <div class="content header {{ section.settings.alignment }}">
+      {%- if section.settings.pretitle != blank -%}<p class="pre-title">{{ section.settings.pretitle }}</p>{%- endif -%}
+      {%- if section.settings.title != blank -%}
+      <{{ section.settings.header_tag }} class="title">{{ section.settings.title }}</{{ hsection.settings.header_tag }}>
+        {%- endif -%}
+        {%- if section.settings.description != blank -%}
+        <div class="body">{{ section.settings.description }}</div>
+    	{%- endif -%}
+  	</div>
+  	{%- endif -%}
+
+      <div class="row product-grid justify-content-start align-self-stretch" data-items="{{ recommendations.products.size }}">
+        {%- assign card_count = 0 -%}
+        {%- for product in recommendations.products -%}
+        {%- unless cart_items_ids contains product.id or product.tags contains settings.exclude_tags -%}
+        {%- assign card_count = card_count | plus:1 -%}
+        <div class="{{ grid_item_width }} card product-card">
+          {% render 'card-product', product: product%}
+        </div>
+        {%- if card_count == product_limit -%} {% break %} {%- endif -%}
+        {%- endunless -%}
+        {% endfor %}
+      </div>
+
+  </div>
+</section>
+
+{% javascript %}
+
+    const handleIntersection = (entries, observer) => {
+      if (!entries[0].isIntersecting) return;
+
+      observer.unobserve(productRecommendations);
+
+      const url = productRecommendations.dataset.url;
+
+      fetch(url)
+      .then(response => response.text())
+      .then(text => {
+        const html = document.createElement('div');
+        html.innerHTML = text;
+        const recommendations = html.querySelector('.product-recommendations');
+        if (recommendations && recommendations.innerHTML.trim().length) {
+          productRecommendations.innerHTML = recommendations.innerHTML;
+        }
+		MiniCart.bindUIActions();
+      })
+      .catch(e => {
+        console.error(e);
+      });
+
+    };
+
+    const productRecommendations = document.querySelector('.product-recommendations');
+    const observer = new IntersectionObserver(handleIntersection, {rootMargin: '0px 0px 200px 0px'});
+    observer.observe(productRecommendations);
+
+{% endjavascript %}
+
+{% schema %}
+  {
+    "name": "Featured Collection",
+	"settings": [
+      {
+        "type": "checkbox",
+        "id": "fluid_section",
+        "label": "Borderless container",
+        "default": true
+      },
+      {
+      	"type": "color",
+      	"id": "color_bg",
+      	"label": "Background color",
+      	"default": "rgba(0,0,0,0)"
+      },
+      {
+        "type": "header",
+        "content": "Layout"
+      },
+      {
+        "type": "product",
+        "id": "product",
+        "label": "Overwrite Product",
+        "info": "(optional)"
+      },
+      {
+        "type": "select",
+        "id": "grid_alignment",
+        "label": "Product Alignment",
+        "default": "justify-content-center",
+        "options": [ 
+		  { "value": "justify-content-start", "label": "Left" },
+          { "value": "justify-content-center", "label": "Center" },
+          { "value": "justify-content-end", "label": "Right" }
+        ]
+      },
+      {
+        "type": "range",
+        "id": "grid",
+        "min": 2,
+        "max": 6,
+        "step": 2,
+        "label": "Products per row",
+        "default": 4
+      },
+      {
+        "type": "range",
+        "id": "rows",
+        "min": 1,
+        "max": 6,
+        "step": 1,
+        "label": "Product rows",
+        "default": 1
+      },
+      {
+        "type": "header",
+        "content": "Content"
+      },
+      {
+        "type": "header",
+        "content": "Content"
+      },
+      {
+        "type": "select",
+        "id": "alignment",
+        "label": "Alignment",
+        "default": "",
+        "options": [
+          { "value": "text-center", "label": "Center" },
+          { "value": "", "label": "Left" },
+          { "value": "text-end", "label": "Right" }
+        ]
+      },
+      {
+        "type": "text",
+        "id": "pretitle",
+        "label": "Pre-Title"
+      },
+      {
+        "type": "color",
+        "id": "color_pretitle",
+        "label": "Pre-Title color",
+        "default": "rgba(0,0,0,0)"
+      },
+      {
+        "type": "html",
+        "id": "title",
+        "label": "Title"
+      },
+      {
+        "type": "select",
+        "id": "header_tag",
+        "label": "Title Tag Type",
+        "default": "h2",
+        "options": [ 
+		  { "value": "h1", "label": "h1" },
+          { "value": "h2", "label": "h2" },
+          { "value": "h3", "label": "h3" },
+          { "value": "h4", "label": "h4" }
+        ]
+      },
+      {
+        "type": "color",
+        "id": "color_title",
+        "label": "Title color",
+        "default": "rgba(0,0,0,0)"
+      },
+      {
+        "type": "html",
+        "id": "description",
+        "label": "Body"
+      },
+      {
+        "type": "color",
+        "id": "color_body",
+        "label": "Body color",
+        "default": "rgba(0,0,0,0)"
+      }
+	],
+    "presets": [{
+      "name": "Product Recommendations",
+      "category": "Product"
+    }]
+  }
+{% endschema %}

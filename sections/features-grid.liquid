@@ -1,0 +1,415 @@
+<style>
+  {%- unless section.settings.color_background == "rgba(0,0,0,0)" -%}#section-{{ section.id }} { background: {{ section.settings.color_background }}!important; }{%- endunless -%}
+  {%- unless section.settings.header_color_title  == "rgba(0,0,0,0)" -%}#section-{{ section.id }} .header .title *, #section-{{ section.id }} .breadcrumb-item *, #section-{{ section.id }} .header .breadcrumb-item:before { color: {{ section.settings.header_color_title }};  }{%- endunless -%}
+  {%- unless section.settings.header_color_body  == "rgba(0,0,0,0)" -%}#section-{{ section.id }} .header p { color: {{ section.settings.header_color_body }};  }{%- endunless -%}
+  {%- unless section.settings.footer_color_title  == "rgba(0,0,0,0)" -%}#section-{{ section.id }} .footer .title * { color: {{ section.settings.footer_color_title }};  }{%- endunless -%}
+  {%- unless section.settings.footer_color_body  == "rgba(0,0,0,0)" -%}#section-{{ section.id }} .footer p { color: {{ section.settings.footer_color_body }};  }{%- endunless -%}
+
+  {%- for block in section.blocks -%}
+    {%- unless block.settings.color_bg == "rgba(0,0,0,0)" -%} #block-{{ block.id }} .content { background-color: {{ block.settings.color_bg }}!important; } {%- endunless -%}
+  {%- endfor -%}
+</style>
+
+{%- if section.settings.anchor_id -%}<a name="{{section.settings.anchor_id}}" id="{{section.settings.anchor_id}}" class="anchor"></a>{%- endif -%}
+<section id="section-{{ section.id }}" class="features-grid {{ section.settings.class }} {% if section.settings.show_carousel != blank %} carousel {{ section.settings.show_carousel }}{% endif %}">
+  <div class="container{%- if section.settings.fluid_section -%}-fluid{%- endif -%}">
+      {%- if section.settings.header_title != blank or section.settings.header_body != blank or section.settings.header_cta_link != blank -%}
+      <div class="content header {{ section.settings.header_alignment }}">
+        {%- if section.settings.header_title != blank -%}
+        <{{ section.settings.header_title_tag }} class="title {{ section.settings.display_class }}">{{ section.settings.header_title }}</{{ section.settings.header_title_tag }}>
+        {%- endif -%}
+
+        {%- if section.settings.header_body != blank -%}
+        <div>{{ section.settings.header_body }}</div>
+        {%- endif -%}
+    
+        {%- if section.settings.header_cta_link != blank and section.settings.header_cta_label != blank -%}
+        <a class="btn {{ section.settings.header_cta_theme }} {{ section.settings.header_cta_size }}" href="{{ section.settings.header_cta_link }}">{{ section.settings.header_cta_label }}</a>
+        {%- endif -%}
+      </div>
+      {%- endif -%}
+
+      <div class="d-flex gap-3 {{ section.settings.v_align }} {{ section.settings.h_align }}"{% if section.settings.show_carousel != blank %} data-slider-display="{{ section.settings.show_carousel }}" data-slider-slides="{{ section.settings.slides_to_show }}" data-slider-dots="{{ section.settings.carousel_dots }}" data-slider-arrows="{{ section.settings.carousel_arrows }}"{% endif %}>
+        {%- for block in section.blocks -%}
+
+          {%- if section.settings.mobile_assets_first -%}
+            {%- if block.type == 'video' or block.type == 'image' -%}
+            	{% capture grid_order %}order-1 order-md-{{ forloop.index }}{% endcapture %}
+            {%- else -%}
+                {% capture grid_order %}order-2 order-md-{{ forloop.index }}{% endcapture %}
+            {%- endif -%}
+          {%- endif -%}
+        
+        <div id="block-{{block.id}}">
+            <div class="content d-flex align-items-center">
+              <div class="{{ block.settings.alignment }} flex-fill">
+                {%- if block.settings.content != blank -%}
+                {{ block.settings.content }}
+                {%- endif -%}
+              </div>
+          	</div>
+  
+        </div>
+        {%- endfor -%}
+      </div>
+
+      {%- if section.settings.footer_title != blank or section.settings.footer_body != blank or section.settings.footer_cta_link != blank -%}
+      <div class="content footer {{ section.settings.footer_alignment }}">
+        {%- if section.settings.footer_title != blank -%}
+        <{{ section.settings.footer_title_tag }} class="title">{{ section.settings.footer_title }}</{{ section.settings.footer_title_tag }}>
+        {%- endif -%}
+
+        {%- if section.settings.footer_body != blank -%}
+        <div>{{ section.settings.footer_body }}</div>
+        {%- endif -%}
+    
+        {%- if section.settings.footer_cta_link != blank and section.settings.footer_cta_label != blank -%}
+        <a class="btn {{ section.settings.footer_cta_theme }} {{ section.settings.footer_cta_size }}" href="{{ section.settings.footer_cta_link }}">{{ section.settings.footer_cta_label }}</a>
+        {%- endif -%}
+      </div>
+      {%- endif -%}
+
+	</div>
+</section>
+
+{% stylesheet %}
+section.features-grid .container-fluid { padding:0; }
+section.features-grid .d-flex > div > div.content { padding:3rem 2rem; }
+section.features-grid .d-flex > div > div.content p.lead { font-style:italic; font-weight:bold; }
+section.features-grid .d-flex > div > div.content .btn { margin-top:1rem; }
+{% endstylesheet %}
+
+{% javascript %}
+  var content_grid_carousel = jQuery('.content-grid.carousel .d-flex');
+  var carousel_display = content_grid_carousel.data('slider-display');
+  if(content_grid_carousel.length > 0 ) {
+    if(carousel_display == 'all' || ( carousel_display == 'mobile' && parseInt(jQuery(window).width()) < 900) ) {
+      content_grid_carousel.not('.slick-initialized').slick({
+        slidesToShow: content_grid_carousel.data('slider-slides'),
+        slidesToScroll: 1,
+        arrows: content_grid_carousel.data('slider-arrows'),
+        dots: content_grid_carousel.data('slider-dots'),
+        infinite: false,
+        responsive: [
+          {
+            breakpoint: 768,
+            settings: {
+              slidesToShow: 1                                                                             
+            }
+          }
+        ]
+      });
+    };
+  };
+{% endjavascript %}
+
+{% schema %}
+  {
+    "name": "Features - Multicolumn",
+    "settings": [
+      {
+        "type": "header",
+        "content": "Background"
+      },
+      {
+        "type": "checkbox",
+        "id": "fluid_section",
+        "label": "Borderless container",
+        "default": false
+      },
+      {
+        "type": "color_background",
+        "id": "color_background",
+        "label": "Background color",
+        "default": "rgba(0,0,0,0)"
+      },
+      {
+        "type": "text",
+        "id": "anchor_id",
+        "label": "Section Anchor ID"
+      },
+      {
+        "type": "text",
+        "id": "class",
+        "label": "Custom class"
+      },
+      {
+        "type": "header",
+        "content": "Cards Layout"
+      },
+      {
+        "type": "select",
+        "id": "v_align",
+        "label": "Vertical align",
+        "default": "align-items-center",
+        "options": [
+          { "value": "align-items-start", "label": "Top" },
+          { "value": "align-items-center", "label": "Middle" },
+          { "value": "align-items-end", "label": "Bottom" }
+        ]
+	  },
+      {
+        "type": "select",
+        "id": "h_align",
+        "label": "Horizontal align",
+        "default": "justify-content-center",
+        "options": [
+          { "value": "justify-content-start", "label": "Left" },
+          { "value": "justify-content-center", "label": "Center" },
+          { "value": " justify-content-end", "label": "Right" },
+          { "value": " justify-content-stretch", "label": "Stretch" }
+        ]
+	  },
+      {
+        "type": "header",
+        "content": "Carousel"
+      },
+      {
+        "type": "select",
+        "id": "show_carousel",
+        "label": "Show Carousel",
+        "default": "",
+        "options": [
+          { "value": "", "label": "No" },
+          { "value": "all", "label": "Desktop + Mobile" },
+          { "value": " mobile", "label": "Mobile Only" }
+        ]
+	  },
+      {
+        "type": "range",
+        "id": "slides_to_show",
+        "label": "Slides to Show",
+        "min": 1,
+        "max": 4,
+        "step": 1,
+        "default": 2
+      },
+      {
+        "type": "checkbox",
+        "id": "carousel_arrows",
+        "label": "Show Arrows",
+        "default": true
+      },
+      {
+        "type": "checkbox",
+        "id": "carousel_dots",
+        "label": "Show Dots",
+        "default": false
+      },
+      {
+        "type": "header",
+        "content": "Header Content"
+      },
+      {
+        "type": "select",
+        "id": "header_alignment",
+        "label": "Alignment",
+        "default": "",
+        "options": [
+          { "value": "text-center", "label": "Center" },
+          { "value": "", "label": "Left" },
+          { "value": "text-end", "label": "Right" }
+        ]
+      },
+      {
+        "type": "html",
+        "id": "header_title",
+        "label": "Title"
+      },
+      {
+        "type": "select",
+        "id": "header_title_tag",
+        "label": "Title Tag Type",
+        "default": "h2",
+        "options": [ 
+		  { "value": "h1", "label": "h1" },
+          { "value": "h2", "label": "h2" },
+          { "value": "h3", "label": "h3" },
+          { "value": "h4", "label": "h4" }
+        ]
+      },
+          {
+            "type": "select",
+            "id": "display_class",
+            "label": "As Display Size",
+            "default": "",
+            "options": [ 
+              { "value": "", "label": "No" },
+              { "value": "display-1", "label": "Display 1" },
+              { "value": "display-2", "label": "Display 2" },
+              { "value": "display-3", "label": "Display 3" },
+              { "value": "display-4", "label": "Display 4" }
+            ]
+          },
+      {
+        "type": "color",
+        "id": "header_color_title",
+        "label": "Title color",
+        "default": "rgba(0,0,0,0)"
+      },
+      {
+        "type": "html",
+        "id": "header_body",
+        "label": "Body"
+      },
+      {
+        "type": "color",
+        "id": "header_color_body",
+        "label": "Body color",
+        "default": "rgba(0,0,0,0)"
+      },
+      {
+        "type": "url",
+        "id": "header_cta_link",
+        "label": "Button Link",
+        "info": "Button will only show if a link is assigned"
+      },
+      {
+        "type": "text",
+        "id": "header_cta_label",
+        "label": "Button Label"
+      },
+      {
+         "type": "select",
+         "id": "header_cta_theme",
+		 "label": "Button Style",
+         "options": [
+            { "value": "btn-primary", "label": "Primary"},
+			{ "value": "btn-outline-primary", "label": "Primary Outline"},
+            { "value": "btn-secondary", "label": "Secondary"},
+			{ "value": "btn-outline-secondary", "label": "Secondary Outline"}
+         ],
+		 "default": "btn-primary"
+      },
+      {
+         "type": "select",
+         "id": "header_cta_size",
+		 "label": "Button Size",
+         "options": [
+            { "value": "", "label": "Normal"},
+			{ "value": "btn-lg", "label": "Large"},
+            { "value": "btn-sm", "label": "Small"}
+         ],
+         "default": ""
+      },
+      {
+        "type": "header",
+        "content": "Footer Content"
+      },
+      {
+        "type": "select",
+        "id": "footer_alignment",
+        "label": "Alignment",
+        "default": "",
+        "options": [
+          { "value": "text-center", "label": "Center" },
+          { "value": "", "label": "Left" },
+          { "value": "text-end", "label": "Right" }
+        ]
+      },
+      {
+        "type": "richtext",
+        "id": "footer_title",
+        "label": "Title"
+      },
+      {
+        "type": "select",
+        "id": "footer_title_tag",
+        "label": "Title Tag Type",
+        "default": "h2",
+        "options": [ 
+		  { "value": "h1", "label": "h1" },
+          { "value": "h2", "label": "h2" },
+          { "value": "h3", "label": "h3" },
+          { "value": "h4", "label": "h4" }
+        ]
+      },
+      {
+        "type": "color",
+        "id": "footer_color_title",
+        "label": "Title color",
+        "default": "rgba(0,0,0,0)"
+      },
+      {
+        "type": "richtext",
+        "id": "footer_body",
+        "label": "Body"
+      },
+      {
+        "type": "color",
+        "id": "footer_color_body",
+        "label": "Body color",
+        "default": "rgba(0,0,0,0)"
+      },
+      {
+        "type": "url",
+        "id": "footer_cta_link",
+        "label": "Button Link",
+        "info": "Button will only show if a link is assigned"
+      },
+      {
+        "type": "text",
+        "id": "footer_cta_label",
+        "label": "Button Label"
+      },
+      {
+         "type": "select",
+         "id": "footer_cta_theme",
+		 "label": "Button Style",
+         "options": [
+            { "value": "btn-primary", "label": "Primary"},
+			{ "value": "btn-outline-primary", "label": "Primary Outline"},
+            { "value": "btn-secondary", "label": "Secondary"},
+			{ "value": "btn-outline-secondary", "label": "Secondary Outline"}
+         ],
+		 "default": "btn-primary"
+      },
+      {
+         "type": "select",
+         "id": "footer_cta_size",
+		 "label": "Button Size",
+         "options": [
+            { "value": "", "label": "Normal"},
+			{ "value": "btn-lg", "label": "Large"},
+            { "value": "btn-sm", "label": "Small"}
+         ],
+         "default": ""
+      }
+    ],
+   "blocks": [
+      {
+        "type": "feature",
+        "name": "Feature",
+        "settings": [
+          {
+            "type": "color",
+            "id": "color_bg",
+            "label": "Background color",
+            "default": "rgba(0,0,0,0)"
+          },
+          {
+            "type": "select",
+            "id": "alignment",
+            "label": "Alignment",
+            "default": "text-start",
+            "options": [
+              { "value": "text-start", "label": "Left" },
+              { "value": "text-center", "label": "Center" },
+              { "value": "text-end", "label": "Right" }
+            ]
+          },
+          {
+            "type": "html",
+            "id": "content",
+            "label": "Content"
+          }
+        ]
+      }
+    ],
+    "presets": [
+      {
+        "name": "Features - Multicolumn"
+      }
+    ]
+  }
+{% endschema %}

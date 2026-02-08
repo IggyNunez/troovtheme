@@ -1,0 +1,367 @@
+<style>
+  {%- unless section.settings.color_bg == "rgba(0,0,0,0)" -%}#section-{{ section.id }} {  background-color: {{ section.settings.color_bg }}!important; }{%- endunless -%}
+  {%- unless section.settings.color_title == "rgba(0,0,0,0)" -%}#section-{{ section.id }} .title {  color: {{ section.settings.color_title }}!important; }{%- endunless -%}
+</style>
+
+<section class="cart" id="section-{{ section.id }}">
+  <div class="container">
+
+    <div class="cart-header d-flex justify-content-between">
+      <div class="title">{{ 'cart.general.title' | t }} (<span mini-cart-count>{{ cart.item_count }}</span>)</div>
+      <div class="continue"><a href="/">{{ 'cart.general.continue_shopping' | t }}</a></div>
+    </div>
+    
+
+    <div id="cartNoItems" class="p-3 text-center"{% if cart.item_count > 0 %} style="display:none;"{% endif %}>
+      <p>You have no items in your  cart</p>
+    </div>
+
+    <form action="/cart" method="post" class="cart"{% if cart.item_count == 0 %} style="display:none;"{% endif %}>
+      <div class="row">
+        <div class="col-12 col-md-8">
+
+          <div class="promo-alert alert" role="alert" style="display:none;"></div>
+
+          <ul class="order-list list-unstyled">
+            {%- for item in cart.items -%}
+            <li class="media" data-variant-id="{{ item.variant_id }}">
+              <div class="media-body">{% render 'card-cart-item', item:item %}</div>
+            </li>
+            {%- endfor -%}
+          </ul>
+
+          {%- if section.settings.cart_notes_enable -%}
+          <div>
+            <label for="CartSpecialInstructions">{{ 'cart.general.note' | t }}</label>
+            <textarea name="note" id="CartSpecialInstructions">{{ cart.note }}</textarea>
+          </div>
+          {%- endif -%}
+
+          {% if section.settings.recommendations_show %}
+
+          {%- assign selected_item = cart.items[0] -%}
+          {%- for item in cart.items -%}
+          {%- assign cart_items_ids = cart_items_ids | append: ',' | append: item.product.id -%}
+          {%- if item.price > selected_item.price -%}
+          {%- assign selected_item = item -%}
+          {%- endif -%}
+          {%- endfor -%}
+          {%- assign cart_items_ids = cart_items_ids | slice: 1, cart_items_ids.size -%}
+
+          <div class="cart-product-recommendations" data-url="{{ routes.product_recommendations_url }}?section_id={{ section.id }}&product_id={{ selected_item.product.id }}&limit={{ section.settings.recommendations_limit | plus:4 }}">
+            {%- if recommendations.performed and recommendations.products_count > 0 -%}
+            <{{ section.settings.recommendations_header_tag }} class="title">{{ section.settings.recommendations_title }}</{{ section.settings.recommendations_header_tag }}>
+
+            <div class="row product-grid justify-content-start align-self-stretch" data-items="{{ recommendations.products.size }}">
+              {%- assign card_count = 0 -%}
+              {%- for product in recommendations.products -%}
+              {%- unless cart_items_ids contains product.id or product.tags contains settings.exclude_tags -%}
+              {%- assign card_count = card_count | plus:1 -%}
+              <div class="col-12 col-md-6 item--{{product.id}} card">
+                {% render 'card-product-list-item', product: product, hide_description: settings.cart_hide_description %}
+              </div>
+              {%- if card_count == section.settings.recommendations_limit -%} {% break %} {%- endif -%}
+              {%- endunless -%}
+              {% endfor %}
+            </div>
+          {%- endif -%}
+          </div>
+
+        {% endif %}
+
+      </div>
+
+      <div class="col-12 col-md-4">
+        <div class="cart-box sticky-md-top">
+          <h4 class="cart-total" cart-total-price>{{ 'cart.general.subtotal' | t }}: {{ cart.total_price | money }}</h4>
+
+          <p class="text-secondary">{{ 'cart.general.shipping_at_checkout' | t }}</p>
+          <button type="submit" name="checkout" class="btn btn-primary btn-lg btn-block">{{ 'cart.general.checkout' | t }}</button>
+          {%- if settings.cart_additional_checkout -%}
+          <div>{{ content_for_additional_checkout_buttons }}</div>
+          {%- endif -%}
+        </div>
+      </div>
+    </form>
+  </div>
+</section>
+
+{% javascript %}
+
+    const handleIntersection = (entries, observer) => {
+      if (!entries[0].isIntersecting) return;
+
+      observer.unobserve(cartProductRecommendations);
+
+      const url = cartProductRecommendations.dataset.url;
+
+      fetch(url)
+      .then(response => response.text())
+      .then(text => {
+        const html = document.createElement('div');
+        html.innerHTML = text;
+        const recommendations = html.querySelector('.cart-product-recommendations');
+        if (recommendations && recommendations.innerHTML.trim().length) {
+          cartProductRecommendations.innerHTML = recommendations.innerHTML;
+        }
+
+        MiniCart.init();
+        cartProductRecommendations.querySelectorAll('.cart-item button[data-bs-toggle]').forEach(item => {
+          item.addEventListener('click', event => {
+            event.preventDefault();
+          })
+        });
+
+      })
+      .catch(e => {
+        console.error(e);
+      });
+
+    };
+
+    const cartProductRecommendations = document.querySelector('.cart-product-recommendations');
+    const observer = new IntersectionObserver(handleIntersection, {rootMargin: '0px 0px 200px 0px'});
+    observer.observe(cartProductRecommendations);
+
+    Shopify.runPromotions();
+
+    jQuery('section.cart .order-list [quantity-select]').each(function( index ) {
+
+      if(jQuery(this).next().length == 0) jQuery(this).inputSpinner();
+
+      jQuery(this).on("change", function (event) {
+        var variant_id = jQuery(this).closest('[quantity-select]').data('variant-id');
+        var item_price = jQuery(this).closest('[quantity-select]').data('variant-price');
+        var item_original_price = jQuery(this).closest('[quantity-select]').data('variant-original-price');
+        var qty = jQuery(this).val();
+        var target_ele = jQuery(this);
+        var parent_ele =jQuery(this).parent().parent().parent();
+
+        Shopify.changeItem( variant_id, qty, function() {
+          /* update line item price */
+          parent_ele.find('[item-price]').html( Shopify.formatMoney( (item_price*qty) ));
+          if( item_original_price > item_price)
+            parent_ele.find('[item-original-price]').html( Shopify.formatMoney( (item_original_price*qty) ));
+        });
+      });
+    });
+
+    /* Click Add-to-Cart on item */
+    jQuery('[remove-from-cart]').on('click', function (evt) {
+      // if variant ID passed, use that
+      evt.preventDefault();
+      Shopify.removeItem( jQuery(this).data('variant-id') );
+    });
+
+{% endjavascript %}
+
+{% schema %}
+  {
+    "name": "Cart page",
+    "settings": [
+      {
+        "type": "header",
+        "content": "Layout"
+      },
+      {
+        "type": "checkbox",
+        "id": "fluid_section",
+        "label": "Fluid container",
+        "default": true
+      },
+      {
+      	"type": "color",
+      	"id": "color_bg",
+      	"label": "Background color",
+      	"default": "rgba(0,0,0,0)"
+      },
+      {
+        "type": "select",
+        "id": "header_tag",
+        "label": "Title Tag Type",
+        "default": "h2",
+        "options": [ 
+		  { "value": "h1", "label": "h1" },
+          { "value": "h2", "label": "h2" },
+          { "value": "h3", "label": "h3" },
+          { "value": "h4", "label": "h4" }
+        ]
+      },
+      {
+        "type": "select",
+        "id": "title_alignment",
+        "label": "Title Alignment",
+        "default": "",
+        "options": [ 
+		  { "value": "", "label": "Left" },
+          { "value": "text-center", "label": "Center" },
+          { "value": "text-right", "label": "Right" }
+        ]
+      },
+      {
+        "type": "color",
+        "id": "color_title",
+        "label": "Title color",
+        "default": "rgba(0,0,0,0)"
+      },
+      {
+        "type": "header",
+        "content": "Cart has items"
+      },
+      {
+      	"type": "text",
+      	"id": "has_items_cta_label",
+      	"label": "Button label",
+        "default": "Continue shopping"
+      },
+      {
+      	"type": "url",
+      	"id": "has_items_cta_link",
+      	"label": "Button link",
+        "default": "/collections"
+      },
+      {
+      	"type": "select",
+      	"id": "has_items_cta_theme",
+      	"label": "Button Style",
+      	"options": [
+          { "value": "btn-primary", "label": "Primary"},
+          { "value": "btn-outline-primary", "label": "Primary Outline"},
+          { "value": "btn-secondary", "label": "Secondary"},
+          { "value": "btn-outline-secondary", "label": "Secondary Outline"}
+      	],
+      	"default": "btn-primary"
+      },
+      {
+      	"type": "select",
+      	"id": "has_items_cta_size",
+      	"label": "Button Size",
+      	"options": [
+      		{ "value": "", "label": "Normal"},
+      		{ "value": "btn-lg", "label": "Large"},
+      		{ "value": "btn-sm", "label": "Small"}
+      	],
+      	"default": "btn-lg"
+      },
+      {
+        "type": "checkbox",
+        "id": "additional_checkout_buttons_show",
+        "label": "Show Addditional Checkout Options",
+        "default": true
+      },
+      {
+        "type": "text",
+        "id": "additional_checkout_buttons_label",
+        "label": "Addditional Checkout Options Label",
+        "default": "Quick Checkout Options"
+      },
+      {
+        "type": "header",
+        "content": "When cart is empty"
+      },
+      {
+        "type": "text",
+        "id": "title",
+        "label": "Heading",
+        "default": "Your Cart"
+      },
+      {
+        "type": "select",
+        "id": "size_title",
+        "label": "Title size",
+         "options": [
+            { "value": "display-1", "label": "Display 1"},
+			{ "value": "display-2", "label": "Display 2"},
+            { "value": "display-3", "label": "Display 3"},
+			{ "value": "display-4", "label": "Display 4"}
+         ],
+		"default": "display-4"
+      },
+      {
+        "type": "richtext",
+        "id": "body",
+        "label": "Description",
+        "default": "<p>Your cart is currently empty.</p>",
+		"info": "(Optional)"
+      },
+      {
+      	"type": "text",
+      	"id": "cta_label",
+      	"label": "Button label",
+        "default": "Continue shopping"
+      },
+      {
+      	"type": "url",
+      	"id": "cta_link",
+      	"label": "Button link",
+        "default": "/collections"
+      },
+      {
+      	"type": "select",
+      	"id": "cta_theme",
+      	"label": "Button Style",
+      	"options": [
+          { "value": "btn-primary", "label": "Primary"},
+          { "value": "btn-outline-primary", "label": "Primary Outline"},
+          { "value": "btn-secondary", "label": "Secondary"},
+          { "value": "btn-outline-secondary", "label": "Secondary Outline"}
+      	],
+      	"default": "btn-primary"
+      },
+      {
+      	"type": "select",
+      	"id": "cta_size",
+      	"label": "Button Size",
+      	"options": [
+      		{ "value": "", "label": "Normal"},
+      		{ "value": "btn-lg", "label": "Large"},
+      		{ "value": "btn-sm", "label": "Small"}
+      	],
+      	"default": "btn-lg"
+      },
+      {
+        "type": "header",
+        "content": "Product Recommendations"
+      },
+      {
+        "type": "checkbox",
+        "id": "recommendations_show",
+        "label": "Show Recommendations",
+        "default": false
+      },
+      {
+        "type": "text",
+        "id": "recommendations_title",
+        "label": "Title",
+        "default": "Other popular products"
+      },
+      {
+        "type": "select",
+        "id": "recommendations_header_tag",
+        "label": "Title Tag Type",
+        "default": "h2",
+        "options": [ 
+		  { "value": "h1", "label": "h1" },
+          { "value": "h2", "label": "h2" },
+          { "value": "h3", "label": "h3" },
+          { "value": "h4", "label": "h4" }
+        ]
+      },
+      {
+        "type": "color",
+        "id": "recommendations_color_title",
+        "label": "Title color",
+        "default": "#777777"
+      },
+      {
+        "type": "range",
+        "id": "recommendations_limit",
+        "label": "Product limit",
+        "min": 2,
+        "max": 8,
+        "step": 1,
+        "default": 4
+      }
+    ]
+  }
+{% endschema %}

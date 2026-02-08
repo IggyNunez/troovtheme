@@ -1,0 +1,31 @@
+{%- if settings.type_base_family contains 'Google' or settings.type_header_family contains 'Google' -%}
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+{%- endif -%}
+{%- if settings.type_base_family contains 'Google' -%}
+  {%- assign type_base_parts = settings.type_base_family | split: '_' -%}
+  {% capture baseGoogleUrl %}{{ type_base_parts[1] }}{%- if type_base_parts[2] -%}:wght@{{ type_base_parts[2] }}{%- endif -%}{% endcapture %}
+<link rel="stylesheet" as="style" href="{{ '//fonts.googleapis.com/css2?family=' | append: baseGoogleUrl }}&display=swap" />
+{%- endif -%}
+{%- if settings.type_header_family contains 'Google' -%}
+  {%- unless settings.type_header_family contains type_base_parts[1] -%}
+    {%- assign type_header_parts = settings.type_header_family | split: '_' -%}
+    {% capture headerGoogleUrl %}{{ type_header_parts[1] }}{%- if type_header_parts[2] -%}:wght@{{ type_header_parts[2] }}{%- endif -%}{% endcapture %}
+<link rel="stylesheet" href="{{ '//fonts.googleapis.com/css2?family=' | append: headerGoogleUrl }}&display=swap" />
+  {%- endunless -%}
+{%- endif -%}
+{%- if settings.type_title_family contains 'Google' -%}
+  {%- unless settings.type_title_family contains type_header_parts[1] -%}
+    {%- assign type_title_parts = settings.type_title_family | split: '_' -%}
+    {% capture titleGoogleUrl %}{{ type_title_parts[1] }}{%- if type_title_parts[2] -%}:wght@{{ type_title_parts[2] }}{%- endif -%}{% endcapture %}
+<link rel="stylesheet" href="{{ '//fonts.googleapis.com/css2?family=' | append: titleGoogleUrl }}&display=swap" />
+  {%- endunless -%}
+{%- endif -%}
+
+{%- if settings.type_accent_family contains 'Google' -%}
+  {%- unless settings.type_accent_family contains type_base_parts[1] or settings.type_accent_family contains type_header_parts[1] -%}
+    {%- assign type_accent_parts = settings.type_accent_family | split: '_' -%}
+    {% capture accentGoogleUrl %}{{ type_accent_parts[1] }}{%- if type_accent_parts[2] -%}:wght@{{ type_accent_parts[2] }}{%- endif -%}{% endcapture %}
+<link rel="stylesheet" href="{{ '//fonts.googleapis.com/css2?family=' | append: accentGoogleUrl }}&display=swap" />
+  {%- endunless -%}
+{%- endif -%}

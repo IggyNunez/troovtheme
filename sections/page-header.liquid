@@ -1,0 +1,125 @@
+<style>
+  {%- unless section.settings.color_bg == "rgba(0,0,0,0)" -%}#section-{{ section.id }} {  background-color: {{ section.settings.color_bg }}!important; }{%- endunless -%}
+  {%- unless section.settings.color_title == "rgba(0,0,0,0)" -%}
+  	#section-{{ section.id }} .title { color: {{ section.settings.color_title }};  }
+    #section-{{ section.id }} .breadcrumb-item, .section-{{ section.id }} .breadcrumb-item a { color: {{ section.settings.color_title }}; }
+  {%- endunless -%}
+  {%- unless section.settings.color_pretitle  == "rgba(0,0,0,0)" -%}#section-{{ block.id }} .pre-title { color: {{ section.settings.color_pretitle }};  }{%- endunless -%}
+  {%- unless section.settings.color_body  == "rgba(0,0,0,0)" -%}#section-{{ section.id }} .body * { color: {{ section.settings.color_body }};  }{%- endunless -%}
+</style>
+
+<section class="page-header" id="section-{{ section.id }}">
+  <div class="container{%- if section.settings.fluid_section -%}-fluid{%- endif -%}">
+    <div class="content header {{ section.settings.alignment }}">
+
+      {%- if section.settings.pretitle != blank -%}<p class="pre-title">{{ section.settings.pretitle }}</p>{%- endif -%}
+      {%- if section.settings.title_show -%}
+      <{{section.settings.header_tag }} class="title">{%- if section.settings.title_override != blank -%}{{ section.settings.title_override }}{%- else -%}{{ page_title }}{%- endif -%}</{{section.settings.header_tag }}>
+      {%- endif -%}
+
+      {%- if section.settings.description_show -%}
+      <div class="body">{%- if section.settings.description_override != blank -%}{{ section.settings.description_override }}{%- else -%}{{ page.content }}{%- endif -%}</div>
+      {%- endif -%}
+
+    </div>
+  </div>
+</section>
+
+{% schema %}
+  {
+    "name": "Page Header",
+    "settings": [
+      {
+        "type": "checkbox",
+        "id": "fluid_section",
+        "label": "Borderless container",
+        "default": true
+      },
+      {
+      	"type": "color",
+      	"id": "color_bg",
+      	"label": "Background color",
+      	"default": "rgba(0,0,0,0)"
+      },
+      {
+        "type": "text",
+        "id": "class",
+        "label": "Custom class"
+      },
+      {
+        "type": "select",
+        "id": "alignment",
+        "label": "Alignment",
+        "default": "",
+        "options": [
+          { "value": "text-center", "label": "Center" },
+          { "value": "", "label": "Left" },
+          { "value": "text-end", "label": "Right" }
+        ]
+      },
+      {
+        "type": "text",
+        "id": "pretitle",
+        "label": "Pre-Title"
+      },
+      {
+        "type": "color",
+        "id": "color_pretitle",
+        "label": "Pre-Title color",
+        "default": "rgba(0,0,0,0)"
+      },
+      {
+        "type": "checkbox",
+        "id": "title_show",
+        "label": "Show Page Title",
+        "default": true
+      },
+      {
+        "type": "color",
+        "id": "color_title",
+        "label": "Title color",
+        "default": "rgba(0,0,0,0)"
+      },
+      {
+        "type": "select",
+        "id": "header_tag",
+        "label": "Title Tag Type",
+        "default": "h1",
+        "options": [ 
+          { "value": "h1", "label": "h1" },
+          { "value": "h2", "label": "h2" },
+          { "value": "h3", "label": "h3" },
+          { "value": "h4", "label": "h4" }
+        ]
+      },
+      {
+        "type": "text",
+        "id": "title_override",
+        "label": "Override Title with"
+      },
+      {
+        "type": "checkbox",
+        "id": "description_show",
+        "label": "Show Page Description",
+        "default": true
+      },
+      {
+        "type": "color",
+        "id": "color_body",
+        "label": "Description color",
+        "default": "rgba(0,0,0,0)"
+      },
+      {
+        "type": "richtext",
+        "id": "description_override",
+        "label": "Override Description with"
+      }
+    ]
+  }
+{% endschema %}
+
+{% stylesheet %}
+{% endstylesheet %}
+
+{% javascript %}
+{% endjavascript %}

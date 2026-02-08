@@ -1,0 +1,48 @@
+<div class="media blog-item">
+  
+  {% if article.image %}
+  {% capture img_id %}ArticleImage-{{ article.image.id }}{% endcapture %}
+  {%- assign img_url = article.image | img_url: '1x1' | replace: '_1x1.', '_{width}x.' -%}
+
+  <a href="{{ article.url }}">
+    <img id="{{ img_id }}" 
+         class="mr-3" 
+         src="{{ article.image | img_url: '300x300' }}" 
+         alt="{{ article.image.alt | escape }}"
+         data-src="{{ img_url }}"
+         data-widths="[180, 360, 540, 720, 905, 1090, 1296, 1512, 1728, 2048]"
+         data-aspectratio="{{ article.image.aspect_ratio }}"
+         data-sizes="auto"
+         >
+  </a>
+
+  <noscript>
+    <p>
+      <a href="{{ article.url }}">
+        {{ article | img_url: '455x300', scale: 2 | img_tag: article.title }}
+      </a>
+    </p>
+  </noscript>
+  {% endif %}
+
+  <div class="media-body">
+    <a href="{{ article.url }}"><h2 class="mt-0 mb-1">{{ article.title }}</h2></a>
+
+    {% if section.settings.blog_show_date %}
+    <span class="blog-date">{{ 'blogs.article.published_at' | t: published_at:article.published_at | time_tag: format: 'month_day_year' }}</span>
+    {% endif %}
+    {% if section.settings.blog_show_author and article.author != blank %}
+    <span class="blog-author">{{ 'blogs.article.by_author' | t: author: article.author }}</span>
+    {% endif %}
+
+    {% if article.excerpt.size > 0 %}
+    {%- assign excerpt = article.excerpt -%}
+    {% else %}
+    {%- assign excerpt = article.content | strip_html | truncate: 150, " ..." -%}
+    {% endif %}
+
+    <p class="mt-2 blog-excerpt">{{ excerpt }}</p>
+
+    <a href="{{ article.url }}" class="btn btn-primary blog-link">{{ 'blogs.article.read_more' | t }}</a>
+  </div>
+</div>

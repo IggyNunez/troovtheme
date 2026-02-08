@@ -1,0 +1,93 @@
+<section>
+  
+  <div class="container">
+
+    <div class="account-details pb-5">
+      <p class="float-end"><a href="{{ routes.account_logout_url }}" class="btn btn-outline-secondary btn-sm">{{ 'layout.customer.log_out' | t }}</a></p>
+      <h1>{{ 'customer.account.title' | t }} </h1>
+      
+      <p id="rc_link_container">
+        <a href="/tools/recurring/login" class="btn btn-primary">Manage your Subscriptions</a>
+      </p>
+    </div>
+    
+    <div class="d-flex gap-5">
+
+      <div class="account-orders flex-fill order-2 order-sm-1">
+        <h3>{{ 'customer.orders.title' | t }}</h3>
+
+        {% paginate customer.orders by 5 %}
+        {% if customer.orders.size != 0 %}
+
+        <ul class="order-list list-unstyled">
+          {% for order in customer.orders %}
+
+          {% capture financial_status_color %}
+          {% assign warning_status = "pending, authorized, refunded, partially_refunded" | split: ", " %}
+          {% assign danger_status = "voided" | split: ", " %}
+          {% assign success_status = "paid, partially_paid" | split: ", " %}
+          {% if warning_status contains order.financial_status %}badge-warning{% endif %} 
+          {% if danger_status contains order.financial_status %}badge-danger{% endif %} 
+          {% if success_status contains order.financial_status %}badge-primary{% endif %} 
+          {% endcapture %}
+
+          {% capture fulfillment_status_color %}
+          {% assign warning_status = "unfulfilled, partial" | split: ", " %}
+          {% assign danger_status = "voided" | split: ", " %}
+          {% assign success_status = "fulfilled" | split: ", " %}
+          {% if warning_status contains order.fulfillment_status %}badge-warning{% endif %} 
+          {% if danger_status contains order.fulfillment_status %}badge-danger{% endif %} 
+          {% if success_status contains order.fulfillment_status %}badge-primary{% endif %} 
+          {% endcapture %}
+
+          <li class="media">
+            <div class="media-body">
+
+              <div class="row align-items-start">
+                <div class="col-12 col-md-3">
+                  <a href="{{ order.customer_url }}" class="btn btn-primary btn-sm float-right d-block d-sm-none">View</a>
+                  <h5 class="m-0 p-0">{{ 'customer.order.title' | t: name: order.name }}</h5><small class="text-muted"><em>{{ order.created_at | date: format: 'month_day_year' }}</em></small>
+                </div>
+                <div class="col-8 col-md-5">
+                  <span class="badge mr-2 {{ fulfillment_status_color }}">{{ 'customer.order.fulfillment_status' | t }} {{ order.fulfillment_status_label }}</span>
+                  {% comment %}<span class="badge {{ financial_status_color }}">{{ 'customer.order.payment_status' | t }} {{ order.financial_status_label }}</span>{% endcomment %}
+                </div>
+                <div class="col-4 col-md-2 text-right"> {{'customer.order.total' | t }} {{ order.total_price | money }}</div>
+                <div class="col-12 col-md-2 text-right d-none d-sm-block"><a href="{{ order.customer_url }}" class="btn btn-primary btn-sm">View</a></div>
+              </div>
+
+              <hr class="hr-sm" />
+
+              {% for line_item in order.line_items %}
+              <div class="media mt-3">
+                <div class="media-body">
+                  {% render'card-cart-item', item:line_item, view_only:true %}
+                </div>
+              </div>
+              {% endfor %}
+            </div>
+          </li>
+          {% endfor %}
+        </ul>
+        {% if paginate.pages > 0 %}
+        {% render 'pagination', paginate:paginate %}
+        {% endif %}
+
+        {% else %}
+
+        <div class="well">
+          <p>{{ 'customer.orders.none' | t }}</p>
+        </div>
+
+        {% endif %}
+
+        {% endpaginate %}
+
+      </div>
+      <div class="order-1 order-sm-2">
+        {{ customer.default_address | format_address }}
+        <p><a href="/account/addresses" class="btn btn-outline-primary">{{ 'customer.account.view_addresses' | t }} ({{ customer.addresses_count }})</a></p>
+      </div>
+    </div>
+  </div>
+</section>

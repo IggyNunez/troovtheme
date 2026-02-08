@@ -1,0 +1,58 @@
+{%- if variant -%}
+  {%- assign variant = variant -%}
+  {%- assign show_variants = true -%}
+{%- else -%}
+  {%- assign variant = product.selected_or_first_available_variant -%}
+  {%- if product.variants.size == 1 -%}
+    {%- assign show_variants = true -%}
+  {%- else -%}
+    {%- assign show_variants = false -%}
+  {%- endif -%}
+{%- endif -%}
+{%- assign has_override_image = false -%}
+
+{%- if variant.compare_at_price > product.price and variant.available -%}
+	{%- assign has_sale_class = 'sale' -%}
+    {%- if product.tags contains 'clearance' -%}{%- assign has_sale_class = 'clearance' -%}{%- endif -%}
+{%- else -%}
+	{%- assign has_sale_class = 'd-none' -%}
+{%- endif -%}
+
+<div class="card product-card {% unless variant.available %}product--sold-out{% endunless %}" id="product-{{product.id}}">
+  <span class="badge badge-sale {{ has_sale_class }}">{%- if has_sale_class == 'clearance' -%}{{ 'products.product.on_clearance' | t }}{%- else - %}{{ 'products.product.on_sale' | t }}{%- endif -%}</span>
+
+  <a href="{{ product.url | within: collection }}?variant={{ variant.id }}" class="card-img-container">
+    {%- if product.featured_image != blank -%}
+    	<img class="card-img-top lazyload" width="400" height="400" data-src="{{ variant.image | default:product.featured_image | image_url: width: 400, height: 400, format:'pjpg' }}" alt="{{ shop.name }} {{ product.title }}">
+    {%- else -%}
+    	{% capture current %}{% cycle 1, 2, 3, 4, 5, 6 %}{% endcapture %}
+    	{{ 'product-' | append: current | placeholder_svg_tag: 'placeholder-svg card-img-top' }}
+    {%- endif -%}
+  </a>
+  <div class="card-body">
+    <a href="{{ product.url | within: collection }}?variant={{ variant.id }}">
+      <h4 class="card-title">
+        {{ product.title }}<br/>
+        {%- if show_variants and variant.title != "Default Title" -%}
+        <small>{{ variant.title }}</small>
+        {%- endif -%}
+        <small class="card-price">{% render 'product-price', variant:variant %}</small>
+        
+      </h4>
+    </a>
+    
+    {%- if show_variants -%}
+    <a class="btn {% if variant.available %}btn-outline-primary{% else %}btn-outline-secondary{% endif %}"{% if variant.available %} href="javascript:void(0)" add-to-cart data-product-id="{{ product.id }}" data-variant-id="{{ variant.id | default: product.selected_or_first_available_variant.id }}"{% else %} href="{{ product.url }}?variant={{ variant.id}}"{% endif %}>
+      {%- unless variant.available -%}
+      {{ 'products.product.sold_out' | t }}
+      {%- else -%}
+      {{ 'collections.product_card.add_to_cart' | t }}
+      {%- endunless -%}
+    </a>
+    {%- else -%}
+    <a href="{{ product.url }}" class="btn btn-outline-primary">{{ 'products.product.view_product' | t }}</a>
+    {%- endif -%}
+      	
+  </div>
+</div>
+

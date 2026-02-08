@@ -1,0 +1,211 @@
+<style>
+  {%- unless section.settings.color_bg == "rgba(0,0,0,0)" -%}#section-{{ section.id }} {  background-color: {{ section.settings.color_bg }}!important; }{%- endunless -%}
+  {%- unless section.settings.color_title == "rgba(0,0,0,0)" -%}#section-{{ section.id }} .title { color: {{ section.settings.color_title }};  }{%- endunless -%}
+  {%- unless section.settings.color_pretitle  == "rgba(0,0,0,0)" -%}#section-{{ block.id }} .pre-title { color: {{ section.settings.color_pretitle }};  }{%- endunless -%}
+  {%- unless section.settings.color_body  == "rgba(0,0,0,0)" -%}#section-{{ section.id }} p { color: {{ section.settings.color_body }};  }{%- endunless -%}
+  {%- unless section.settings.max_width == 0 -%}#section-{{ section.id }} > div > div.d-flex > div { max-width: {{ section.settings.max_width | append:"px" }};  }{%- endunless -%}
+</style>
+
+<section class="custom {{ section.settings.class }}" id="section-{{ section.id }}">
+  <div class="container{% if section.settings.fluid_section %}-fluid{% endif %}">
+    
+    {% if section.settings.title != blank or section.settings.description != blank %}
+    <div class="content header {{ section.settings.alignment }}">
+      {%- if section.settings.pretitle != blank -%}<p class="pre-title">{{ section.settings.pretitle }}</p>{%- endif -%}
+      {%- if section.settings.title != blank -%}
+      <{{ section.settings.header_tag }} class="title {{ section.settings.display_class }}">{{ section.settings.title }}</{{ section.settings.header_tag }}>
+        {%- endif -%}
+
+        {%- if section.settings.description != blank -%}
+        <div class="body">{{ section.settings.description }}</div>
+    	{%- endif -%}
+  	</div>
+  	{%- endif -%}
+    
+    <div class="d-flex {{ section.settings.content_alignment }}"><div>{{ section.settings.html | raw }}</div></div>
+
+    {% if section.settings.cta_link != blank and section.settings.cta_label != blank %}
+    <a href="{{ section.settings.cta_link }}" class="btn {{ section.settings.button_theme }} {{ section.settings.button_size }}">{{ section.settings.cta_label }}</a>
+    {% endif %}
+    
+  </div>
+</section>
+
+{% schema %}
+  {
+    "name": "Custom HTML",
+    "settings": [
+      {
+        "type": "checkbox",
+        "id": "fluid_section",
+        "label": "Borderless container",
+        "default": true
+      },
+      {
+      	"type": "color",
+      	"id": "color_bg",
+      	"label": "Background color",
+      	"default": "rgba(0,0,0,0)"
+      },
+      {
+        "type": "text",
+        "id": "anchor_id",
+        "label": "Section Anchor ID"
+      },
+
+      {
+        "type": "text",
+        "id": "class",
+        "label": "Custom class"
+      },
+      {
+        "type": "header",
+        "content": "Custom HTML"
+      },
+      {
+        "type": "textarea",
+        "id": "html",
+        "label": "HTML"
+      },
+      {
+        "type": "select",
+        "id": "content_alignment",
+        "label": "Alignment",
+        "default": "",
+        "options": [
+          { "value": "text-center", "label": "Center" },
+          { "value": "", "label": "Left" },
+          { "value": "text-end", "label": "Right" }
+        ]
+      },
+      {
+        "type": "range",
+        "id": "max_width",
+        "label": "Max Width",
+        "min": 0,
+        "max": 1000,
+        "step": 10,
+        "unit": "px",
+        "default": 0,
+        "info": "set to 0 for no max width"
+      },
+      {
+        "type": "header",
+        "content": "Content"
+      },
+      {
+        "type": "select",
+        "id": "alignment",
+        "label": "Header Alignment",
+        "default": "",
+        "options": [
+          { "value": "text-center", "label": "Center" },
+          { "value": "", "label": "Left" },
+          { "value": "text-end", "label": "Right" }
+        ]
+      },
+      {
+        "type": "text",
+        "id": "pretitle",
+        "label": "Pre-Title"
+      },
+      {
+        "type": "color",
+        "id": "color_pretitle",
+        "label": "Pre-Title color",
+        "default": "rgba(0,0,0,0)"
+      },
+      {
+        "type": "html",
+        "id": "title",
+        "label": "Title"
+      },
+      {
+        "type": "select",
+        "id": "header_tag",
+        "label": "Title Tag Type",
+        "default": "h2",
+        "options": [ 
+		  { "value": "h1", "label": "h1" },
+          { "value": "h2", "label": "h2" },
+          { "value": "h3", "label": "h3" },
+          { "value": "h4", "label": "h4" }
+        ]
+      },
+      {
+        "type": "select",
+        "id": "display_class",
+        "label": "As Display Size",
+        "default": "",
+        "options": [ 
+          { "value": "", "label": "No" },
+          { "value": "display-1", "label": "Display 1" },
+          { "value": "display-2", "label": "Display 2" },
+          { "value": "display-3", "label": "Display 3" },
+          { "value": "display-4", "label": "Display 4" }
+        ]
+      },
+      {
+        "type": "color",
+        "id": "color_title",
+        "label": "Title color",
+        "default": "rgba(0,0,0,0)"
+      },
+      {
+        "type": "html",
+        "id": "description",
+        "label": "Body"
+      },
+      {
+        "type": "color",
+        "id": "color_body",
+        "label": "Body color",
+        "default": "rgba(0,0,0,0)"
+      },
+      {
+        "type": "header",
+        "content": "Button"
+      },
+      {
+        "type": "url",
+        "id": "cta_link",
+        "label": "Button Link",
+        "info": "Button will only show if a link is assigned"
+      },
+      {
+        "type": "text",
+        "id": "cta_label",
+        "label": "Button Label",
+        "default": "Get this thing"
+      },
+      {
+         "type": "select",
+         "id": "button_theme",
+		 "label": "Button Style",
+         "options": [
+            { "value": "btn-primary", "label": "Primary"},
+			{ "value": "btn-outline-primary", "label": "Primary Outline"},
+            { "value": "btn-secondary", "label": "Secondary"},
+			{ "value": "btn-outline-secondary", "label": "Secondary Outline"}
+         ],
+		 "default": "btn-primary"
+      },
+      {
+         "type": "select",
+         "id": "button_size",
+		 "label": "Button Size",
+         "options": [
+            { "value": "", "label": "Normal"},
+			{ "value": "btn-lg", "label": "Large"},
+            { "value": "btn-sm", "label": "Small"}
+         ],
+         "default": ""
+      }
+    ],
+    "presets": [
+      {
+        "name": "Custom HTML"
+      }
+    ]
+  }
+{% endschema %}

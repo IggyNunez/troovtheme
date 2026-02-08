@@ -1,0 +1,27 @@
+<div class="card product-card {{ card.alignment }}">
+  {%- if card.link != blank -%}<a href="{{ card.link }}">{%- endif -%}
+  {%- if card.image != "blank" -%}
+  {%- assign image_title = card.image.alt_text | default: section.title -%}
+  {%- assign image_width = settings.site_max_width | divided_by: section.grid -%}
+  {%- assign image_height = image_width | divided_by: card.image.aspect_ratio | ceil -%}
+  <picture class="card-img-container">
+    <source media="(max-width: 400px)" data-srcset="{%- if card.image_xs -%}{{ card.image_xs | img_url: '400x', scale: 2 }}{%- else -%}{{ card.image | img_url: '400x', scale:2 }}{%- endif -%}">
+    <source media="(max-width: 576px)" data-srcset="{%- if card.image_xs -%}{{ block.settings.image_xs | img_url: '580x', scale: 2 }}{%- else -%}{{ card.image | img_url: '580x', scale:2 }}{%- endif -%}">
+    <source media="(max-width: 992px)" data-srcset="{{ card.image | img_url: '800x', scale: 2 }}, {{ section.image | img_url: '800x', scale: 3 }}">
+    <img data-src="{{ card.image | img_url:  '600x' }}" data-srcset="{{ card.image | img_url: '600x', scale: 2 }}" alt="{{ image_title }}" title="{{ image_width }}" width="{{ image_width }}" height="{{ image_height }}" class="img-fluid lazyload {{ card.image_alignment }} {{ card.image_style }}">
+  </picture>
+  {%- else -%}
+  <picture class="card-img-container">
+    {% capture current %}{% cycle 1,2,3,4,5,6 %}{% endcapture %}
+    {{ 'collection-' | append: current | placeholder_svg_tag: 'placeholder-svg img-fluid' }}
+  </picture>
+  {%- endif -%}
+  {%- if card.link != blank -%}</a>{%- endif -%}
+  <div class="card-body">
+    {%- if card.link != blank -%}<a href="{{ card.link }}">{%- endif -%}
+    {%- if card.title != blank -%}<h4 class="card-title">{{ card.title }}</h4>{%- endif -%}
+    {%- if card.link != blank -%}</a>{%- endif -%}
+    {%- if card.body != blank -%}<div class="card-text">{{ card.body }}</div>{%- endif -%}
+    {%- if card.link != blank and card.link_label != blank -%}<a href="{{ card.link }}" class="btn {{ card.link_size }} {{ card.link_theme }}">{{ card.link_label }}</a>{%- endif -%}
+  </div>
+</div>

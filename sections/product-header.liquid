@@ -1,0 +1,432 @@
+{%- assign current_variant = product.selected_or_first_available_variant -%}
+
+{%- assign c_exclude = settings.exclude_collections -%}
+{%- if c_exclude contains collection.handle or collection == blank -%}
+  {%- for c in product.collections -%}
+   {%- unless c_exclude contains c.handle -%}
+  	{%- assign collection = c -%}
+    {%- break -%}
+   {%- endunless -%}
+  {%- endfor -%}
+{%- endif -%}
+
+{% capture image_count %}{{ product.images | size }}{% endcapture %}
+<style>
+  {%- unless section.settings.color_bg == "rgba(0,0,0,0)" -%}#section-{{ section.id }} {  background-color: {{ section.settings.color_bg }}!important; }{%- endunless -%}
+</style>
+
+<section class="product-header" id="section-price">
+  <div class="container{%- if section.settings.fluid_section -%}-fluid{%- endif -%}">
+    <div class="row no-gutters align-items-center">
+      <div class="col-12 col-md-6">
+        {%- if product.images.size > 1 -%}
+        <div id="mip-carousel">
+          <div class="carousel-hero">
+            {%- for image in product.images -%}
+            <div>
+              {%- assign image_title = image.alt | default:product.title -%}
+              {%- assign image_width = image.width -%}
+              {%- assign image_height = image_width | divided_by:image.aspect_ratio | ceil -%}
+              <picture>
+                <source media="(max-width: 500px)" data-srcset="{{ image | image_url: width: 500 }}">
+                <img src="{{ image | image_url: width: 100 }}" data-src="{{ image | image_url: width: 800 }}" width="{{ image_width }}" height="{{ image_height }}" alt="{{ image_title }}" title="{{ image_title }}" class="img-fluid lazyload">
+              </picture>
+            </div>
+            {%- endfor -%}
+          </div>
+        </div>
+        {%- else -%}
+        <picture>
+          <source media="(max-width: 500px)" srcset="{{ product.featured_image | img_url: '500x' }}">
+          <img src="{{ product.featured_image | img_url: '800x800', crop:'center' }}" class="img-fluid" alt="{{ product.featured_image.alt | escape }}">
+        </picture> 
+        {%- endif -%}
+        
+      </div>
+      <div class="col-12 col-md-6 description">
+        <div class="content">
+          	<div id="product_header">
+              <h1 class="title display-3">
+                <span><img src="https://cdn.shopify.com/s/files/1/0611/0982/9863/files/icon_leaf_energy_black.png?v=1660246610"></span>
+                <span class="text-outline">{{ product.metafields.global.title | default: product.title }}</span>
+                <span class="variant-title">{{ current_variant.title }}</span>
+                </h1>
+
+                {%- if section.settings.show_ratings -%}
+                <div class="rating">
+                <span 
+                class="stamped-product-reviews-badge stamped-main-badge" 
+                data-id="{{ product.id }}" 
+                data-product-sku="{{ product.handle }}" 
+                data-product-title="{{product.title}}" 
+                data-product-type="{{product.type}}" 
+                style="display: block;">
+                {{product.metafields.stamped.badge}}
+                </span>
+                </div>
+                {%- endif -%}
+
+                <div>
+  {% render 'product-price', variant: current_variant %}
+ 
+</div>
+ 
+              </div>
+          
+            <div id="product_description">{{ product.description }}</div>
+
+		 <div id="product_buybox" class="mt-3">
+           <form action="/cart/add" method="post">
+
+               <div class="d-flex align-items-center gap-2 product-option">
+                <div><img src="https://cdn.shopify.com/s/files/1/0611/0982/9863/files/icon_leaf_energy_green.png?v=1660246610" class="img-fluid"></div>
+                <div class="flex-fill">
+                  <select class="form-select" name="id">
+                    {% for variant in product.variants %}
+                    <option value="{{ variant.id }}">{{ variant.title }}</option>
+                    {% endfor %}
+                  </select>
+                </div>
+              </div>
+
+             {% comment %}
+             {% render 'product-options', product:product, current_variant:current_variant %}
+             {% endcomment %}
+
+            {% if section.settings.show_signup %}
+                <div class="klaviyo-form-RAwrRy mb-3 d-flex"></div>
+            
+            {% else %}
+             <div class="d-flex align-items-center justify-content-start buy-actions">
+               <div>
+                 <div class="d-flex gap-2 align-items-center ">
+                   <div><label for="quantity">{{ 'products.product.quantity' | t }}</label></div>
+                   <div><input class="form-control" id="quantity" type="number" name="quantity" value="1" min="1" size="3" pattern="[0-9]*"></div>
+                 </div>
+               </div>
+               <div>
+                 <button type="submit" name="add" class="btn btn-primary "{%- unless current_variant.available -%} disabled{%- endunless -%}>
+                   {%- unless current_variant.available -%}
+                   {{ 'products.product.sold_out' | t }}
+                   {%- else -%}
+                   {{ 'products.product.add_to_cart' | t }}
+                   {%- endunless -%}
+                 </button>
+               </div>
+             </div>
+             
+             {%- if section.settings.show_notify and section.settings.notify_btn_label != blank  -%}
+             <div class='text-center text-md-start py-2'>
+               <h3 
+                style="display:flex; 
+                       align-items:center; 
+                       justify-content:center;
+                 margin-top: 1rem;"
+                 >OR
+               </h3>
+               <a class="klaviyo-bis-trigger btn btn-link" style="display:none;" href="#">{{ section.settings.notify_btn_label }}</a></div>
+             {%- endif -%}
+             
+               {% endif %}
+             {% if section.settings.guarantee != blank %}<p class="m-3">{{ section.settings.guarantee }}</p>{% endif %}
+             {%- if section.blocks.size > 0 -%}
+            
+             {%- endif -%}
+           </form>
+          </div>
+          <div class="d-flex align-items-center justify-content-start product-badges">
+               {% for block in section.blocks %}
+               <div class="text-center">
+                 {%- if block.settings.image != blank -%}
+                 <img src="{{ block.settings.image | image_url: width:50 }}" alt="{{block.settings.title }}" title="{{block.settings.title }}">
+                 {%- endif -%}
+                 <p>{{block.settings.title }}</p>
+               </div>
+               {% endfor %}
+             </div>
+        </div> 
+      </div>
+
+      {%- if section.settings.show_share_buttons -%}
+      {% include 'social-sharing', share_title: product.title, share_permalink: product.url, share_image: product, share_headline: section.settings.share_title %}
+      {%- endif -%}
+
+    </div>
+  </div>
+</section>
+<!-- END PRODUCT SECTION -->
+
+{% unless product == empty %}
+  <script type="application/json" id="ProductJson">
+    {{ product | json }}
+  </script>
+{% endunless %}
+
+<script>
+let lang_add_to_cart = {{'products.product.add_to_cart' | t | json }};
+let lang_sold_out = {{'products.product.sold_out' | t | json }};
+</script>
+
+<script>
+window.addEventListener('DOMContentLoaded', (event) => {
+
+  var product = JSON.parse( document.getElementById('ProductJson').innerHTML );
+  var current_variant = getCurrentVariant( jQuery('[name="id"]').val() );
+
+  function changeVariant() {
+    // update UI items
+    
+    document.querySelector(".product-header .title .variant-title").innerHTML = current_variant.title;
+    updatePrice(); // Updates display price and sale display
+    updateImage();
+    updateCTA( current_variant.available ); // Display Buy CTA for Variant
+    updateHistoryState(); // Adds Variant ID to URL for deeplinking
+  };
+  
+  function updatePrice() {
+    var productPrice = current_variant.price;
+    var originalPrice = current_variant.compare_at_price;
+    
+    // set proper format and update price UI
+    document.querySelector(".product-header [product-price]").innerHTML = Shopify.formatMoney(productPrice,'{{amount_no_decimals}}');
+	
+    /* If variant is on sale, update sale pricing UI */
+    if ( productPrice < originalPrice ) {
+      document.querySelector(".product-header [original-price]").innerHTML = Shopify.formatMoney(originalPrice,'{{amount_no_decimals}}');
+    };
+  };
+  
+  function updateCTA( is_available ) {
+
+    if( is_available == true ) {
+      jQuery('.klaviyo-bis-trigger').hide();
+      jQuery('[type="submit"]').removeAttr("disabled");
+      jQuery('[type="submit"]').html( lang_add_to_cart );
+    } else {
+      jQuery('.klaviyo-bis-trigger').show();
+      jQuery('[type="submit"]').attr("disabled", true);
+      jQuery('[type="submit"]').html( lang_sold_out );
+    };
+
+  };
+
+  function updateImage() {
+    var variant_id = current_variant.id;
+    var variant_image = current_variant.featured_image;
+    var carousel_content = $("#variant-carousel-"+variant_id ).html();
+
+    // If product has variants load MIP Variants
+    if ( jQuery('#mip-carousel div.carousel-hero').length >= 1 && current_variant.featured_image ) {
+     jQuery('#mip-carousel div.carousel-hero').slick('slickGoTo', (current_variant.featured_image.position -1), true);
+    };
+
+  };
+
+  function updateHistoryState() {
+    // Update history state for product deeplinking
+    var newurl = window.location.protocol + '//' + window.location.host + window.location.pathname + '?variant=' + current_variant.id;
+    window.history.replaceState({path: newurl}, '', newurl);
+  };
+
+  function getCurrentVariant( variantId ) {
+    var variants = product.variants;
+	// map variants and return the selected one
+    
+    var found = jQuery.map(variants, function(variant) {
+      if(variant.id == variantId) {
+        return variant; // return matching variant object
+      }
+    });
+
+    return found[0]; // returns single array so pull out first element object
+  };
+  
+  var inputSpinnerConfig = {
+    decrementButton: "<strong>&#60;</strong>", // button text
+    incrementButton: "<strong>&#62;</strong>", // ..
+    buttonsWidth: "0.5rem",
+  };
+  
+  $("input[type='number']").inputSpinner(inputSpinnerConfig);
+
+  /* ON PAGE LOAD */
+  jQuery('[name="id"]').on('change', function () {
+    current_variant = getCurrentVariant( $(this).val() );
+    changeVariant();
+  });
+  
+  if( jQuery('#mip-carousel div.carousel-hero div').length > 1 ) {
+    jQuery('#mip-carousel div.carousel-hero').not('.slick-initialized').slick({
+      slidesToShow: 1,
+      slidesToScroll: 1,
+      lazyLoad: 'ondemand',
+      touchMove: true,
+      arrows: false
+    });
+  };
+
+  // Show affix on scroll.
+  
+  var element = document.getElementById('product_buybox');
+  if (element !== null && window.innerWidth < 768 ) {
+    var position = element.offsetTop;
+    window.addEventListener('scroll', function () {
+      var height = jQuery(window).scrollTop();
+      if (height > position) {
+        element.classList.add("fixed-bottom");
+      } else {
+       element.classList.remove("fixed-bottom");
+      }
+    });
+  };
+
+  changeVariant();
+
+});
+</script>
+
+
+{%- if section.settings.show_notify -%}
+<script src="https://a.klaviyo.com/media/js/onsite/onsite.js"></script>
+<script>
+    var klaviyo = klaviyo || [];
+    klaviyo.init({
+      account: "RaC8P6",
+      platform: "shopify"
+    });
+    klaviyo.enable("backinstock",{ 
+    trigger: {
+      product_page_text: "Notify Me When Available",
+      product_page_class: "klaviyo-bis-trigger",
+      product_page_text_align: "center",
+      product_page_margin: "0px",
+      replace_anchor: false
+    },
+    modal: {
+     headline: "{product_name}",
+     body_content: "{{ section.settings.notify_modal_body }}",
+     email_field_label: "Email",
+     button_label: "Notify me",
+     subscription_success_label: "{{ section.settings.notify_modal_success }}",
+     footer_content: '',
+     additional_styles: "@import url('https://fonts.googleapis.com/css?family=Helvetica+Neue');",
+     font_family: '"Helvetica Neue", Helvetica, Arial, sans-serif;',
+     drop_background_color: "#000",
+     background_color: "#fff",
+     text_color: "#222",
+     button_text_color: "#fff",
+     button_background_color: "#439fdb",
+     close_button_color: "#ccc",
+     error_background_color: "#fcd6d7",
+     error_text_color: "#C72E2F",
+     success_background_color: "#d3efcd",
+     success_text_color: "#1B9500"
+    }
+  });
+</script>
+{%- endif -%}
+  
+  
+{% schema %}
+  {
+    "name": "Product Header",
+    "settings": [
+      {
+        "type": "header",
+        "content": "Background"
+      },
+      {
+        "type": "checkbox",
+        "id": "fluid_section",
+        "label": "Borderless container",
+        "default": false
+      },
+      {
+        "type": "color",
+        "id": "color_bg",
+        "label": "Background color",
+        "default": "rgba(0,0,0,0)"
+      },
+      {
+        "type": "text",
+        "id": "anchor_id",
+        "label": "Section Anchor ID"
+      },
+      {
+        "type": "checkbox",
+        "id": "show_signup",
+        "label": "Turn off Purchase and ask for signup",
+        "default": false
+      },
+      {
+        "type": "checkbox",
+        "id": "show_ratings",
+        "label": "Show ratings",
+        "default": true
+      },
+      {
+        "type": "checkbox",
+        "id": "show_share_buttons",
+        "label": "Show social sharing buttons",
+        "default": false
+      },
+      {
+      	"type": "text",
+      	"id": "share_title",
+      	"label": "Share title",
+      	"default": "Share this product"
+      },
+      {
+      	"type": "text",
+      	"id": "guarantee",
+      	"label": "Buy Guarantee"
+      },
+      {
+        "type": "header",
+        "content": "If Product Unavailable"
+      },
+      {
+        "type": "checkbox",
+        "id": "show_notify",
+        "label": "Allow users to get notified",
+        "default": true
+      },
+      {
+        "type": "text",
+        "id": "notify_btn_label",
+        "label": "Notify button label",
+        "default": "Notify Me When Available"
+      },
+      {
+        "type": "text",
+        "id": "notify_modal_body",
+        "label": "Modal Body Copy",
+        "default": "We'll let you know when this item comes back in stock."
+      },
+      {
+        "type": "text",
+        "id": "notify_modal_success",
+        "label": "Notify Sign up success",
+        "default": "All set! We'll let you know when it's back."
+      }
+    ],
+    "blocks": [
+      {
+        "type": "badge",
+        "name": "Badge",
+        "settings": [
+          {
+            "type": "image_picker",
+            "id": "image",
+            "label": "Image"
+          },
+          {
+            "type": "text",
+            "id": "title",
+            "label": "Label"
+          }
+        ]
+      }
+    ]
+  }
+{% endschema %}

@@ -1,0 +1,13 @@
+{%- if video_url contains "youtube" or video_url contains "youtu.be" or video_url contains "vimeo" -%}
+  {%- assign embed_url = video_url -%}
+  {% if video_url contains "youtu.be" %}
+  {%- assign embed_url = video_url | remove:"https://youtu.be/" | prepend: "https://www.youtube.com/embed/" -%}
+  {% endif %}
+  <div class="ratio ratio-{{ size | default: '16x9' }}"><iframe src="{{ embed_url }}" frameborder="0" allowfullscreen></iframe></div>
+{%- else -%}
+  <div class="ratio ratio-{{ size | default: '16x9' }}">
+    <video autoplay="autoplay" muted="muted" loop="loop" playsinline="" aria-label="{{ title }}">
+      <source src="{{ video_url }}" type="video/mp4">
+    </video>
+  </div>
+{%- endif -%}

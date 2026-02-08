@@ -1,0 +1,123 @@
+{%- assign product = all_products[section.settings.product] | default: product -%}
+
+{%- if product -%}
+<style>
+  {%- unless section.settings.color_bg == "rgba(0,0,0,0)" -%}#section-{{ section.id }} {  background-color: {{ section.settings.color_bg }}!important; }{%- endunless -%}
+  {%- unless section.settings.color_title == "rgba(0,0,0,0)" -%}#section-{{ section.id }} .title { color: {{ section.settings.color_title }};  }{%- endunless -%}
+  {%- unless section.settings.color_body  == "rgba(0,0,0,0)" -%}#section-{{ section.id }} p { color: {{ section.settings.color_body }};  }{%- endunless -%}
+</style>
+
+{%- if section.settings.anchor_id -%}<a name="{{section.settings.anchor_id}}" class="anchor"></a>{%- endif -%}
+<section class="product-reviews" id="section-{{ section.id }}"> 
+  <div class="container{%- if section.settings.fluid_section -%}-fluid{%- endif -%}">
+    <div class="content">
+      
+    {% if section.settings.title != blank or section.settings.description != blank %}
+    <div class="content header {{ section.settings.alignment }}">
+      {%- if section.settings.title != blank -%}
+      <{{ section.settings.header_tag }} class="title">{{ section.settings.title }}</{{ hsection.settings.header_tag }}>
+        {%- endif -%}
+
+        {%- if section.settings.description != blank -%}
+        {{ section.settings.description }}
+    	{%- endif -%}
+  	</div>
+  	{%- endif -%}
+  
+    <!--Stamped - Begin Main Widget -->
+    <div 
+         id="stamped-main-widget"   
+         data-product-id="{{ product.id }}"   
+         data-name="{{ product.title | escape }}"   
+         data-url="{{ shop.url }}{{ product.url }}"   
+         data-image-url="{{ product.featured_image | product_img_url: "large" |replace: '?', '%3F' | replace: '&','%26'}}" 
+         data-description="{{ product.description | escape }}"   
+         data-product-sku="{{product.handle}}"
+         data-product-title="{{product.title}}" 
+         ></div>
+
+  </div>
+</section>
+{%- endif -%}
+
+{% schema %}
+  {
+    "name": "Product Reviews",
+    "settings": [
+    {
+      "type": "checkbox",
+      "id": "fluid_section",
+      "label": "Borderless container",
+      "default": true
+    },
+    {
+      "type": "color",
+      "id": "color_bg",
+      "label": "Background color",
+      "default": "rgba(0,0,0,0)"
+    },
+    {
+      "type": "text",
+      "id": "anchor_id",
+      "label": "Section Anchor ID",
+      "default": "reviews"
+    },
+    {
+      "type": "header",
+      "content": "Content"
+    },
+    {
+      "type": "product",
+      "id": "product",
+      "label": "Product",
+      "info": "leave blank to inherit default product (on PDP only)"
+    },
+    {
+      "type": "select",
+      "id": "alignment",
+      "label": "Alignment",
+      "default": "text-center",
+      "options": [
+        { "value": "text-center", "label": "Center" },
+        { "value": "", "label": "Left" },
+        { "value": "text-end", "label": "Right" }
+      ]
+    },
+      {
+        "type": "html",
+        "id": "title",
+        "label": "Title",
+        "default": "<b>Customer Reviews</b>"
+      },
+      {
+        "type": "select",
+        "id": "header_tag",
+        "label": "Title Tag Type",
+        "default": "h2",
+        "options": [ 
+		  { "value": "h1", "label": "h1" },
+          { "value": "h2", "label": "h2" },
+          { "value": "h3", "label": "h3" },
+          { "value": "h4", "label": "h4" }
+        ]
+      },
+      {
+        "type": "color",
+        "id": "color_title",
+        "label": "Title color",
+        "default": "rgba(0,0,0,0)"
+      },
+      {
+        "type": "html",
+        "id": "description",
+        "label": "Body"
+      },
+      {
+        "type": "color",
+        "id": "color_body",
+        "label": "Body color",
+        "default": "rgba(0,0,0,0)"
+      }
+    ]
+  }
+{% endschema %}

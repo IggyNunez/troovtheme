@@ -1,0 +1,290 @@
+{%- assign product = all_products[section.settings.product] -%}
+
+
+{% if product %}
+<style>
+  {%- unless section.settings.color_bg == "rgba(0,0,0,0)" -%}#section-{{ section.id }} {  background-color: {{ section.settings.color_bg }}!important; }{%- endunless -%}
+  {%- unless section.settings.color_title == "rgba(0,0,0,0)" -%}#section-{{ section.id }} .title { color: {{ section.settings.color_title }};  }{%- endunless -%}
+  {%- unless section.settings.color_pretitle  == "rgba(0,0,0,0)" -%}#section-{{ block.id }} .pre-title { color: {{ section.settings.color_pretitle }};  }{%- endunless -%}
+  {%- unless section.settings.color_body  == "rgba(0,0,0,0)" -%}#section-{{ section.id }} p { color: {{ section.settings.color_body }};  }{%- endunless -%}
+  {%- unless section.settings.max_width == 0 -%}#section-{{ section.id }} > div > div.d-flex { max-width: {{ section.settings.max_width | append:"px" }}; margin:0 auto;  }{%- endunless -%}
+</style>
+
+<section class="variant-chooser {{ section.settings.class }}" id="section-{{ section.id }}">
+  <div class="container{% if section.settings.fluid_section %}-fluid{% endif %}">
+    
+    {%- if section.settings.header_title != blank or section.settings.header_body != blank or section.settings.header_cta_link != blank -%}
+    <div class="content header {{ section.settings.header_alignment }}">
+      {%- if section.settings.header_title != blank -%}
+      <{{ section.settings.header_title_tag }} class="title {{ section.settings.display_class }}">{{ section.settings.header_title }}</{{ section.settings.header_title_tag }}>
+      {%- endif -%}
+
+      {%- if section.settings.header_body != blank -%}
+      <div>{{ section.settings.header_body }}</div>
+      {%- endif -%}
+  
+      {%- if section.settings.header_cta_link != blank and section.settings.header_cta_label != blank -%}
+      <a class="btn {{ section.settings.header_cta_theme }} {{ section.settings.header_cta_size }}" href="{{ section.settings.header_cta_link }}">{{ section.settings.header_cta_label }}</a>
+      {%- endif -%}
+    </div>
+    {%- endif -%}
+    
+    <div class="d-flex {{ section.settings.content_alignment }}">
+      <div>
+        <div class="card">
+          <img src="{{ product.featured_image | image_url: width:600 }}" class="card-img-top img-fluid" alt="{{ product.title }}">
+          <div class="card-body">
+            {%- if section.settings.message != blank %}<div class="card-text">{{ section.settings.message }}</div>{%- endif -%}
+             <fieldset class="variants">
+            {% for variant in product.variants %}
+              <div class="form-check mb-2">
+                <input class="form-check-input" type="radio" name="variant" value="{{ variant.id }}" data-image="{{ variant.featured_media | image_url:width:600 }}" id="variant-{{ variant.id }}"{% if forloop.first %} checked{% endif %}>
+                <label class="form-check-label" for="variant-{{ variant.id }}">{{ variant.title }}</label>
+              </div>
+            {% endfor %}
+             </fieldset>
+            <button type="button" class="btn btn-primary mt-2" id="submitVariantChoice">{{ section.settings.form_cta_label}}</button>
+             </div>
+         </div>
+    
+      </div>
+    </div>
+
+    {%- if section.settings.footer_title != blank or section.settings.footer_body != blank or section.settings.footer_cta_link != blank -%}
+    <div class="content footer {{ section.settings.footer_alignment }}">
+      {%- if section.settings.footer_title != blank -%}
+      <{{ section.settings.footer_title_tag }} class="title">{{ section.settings.footer_title }}</{{ section.settings.footer_title_tag }}>
+      {%- endif -%}
+  
+      {%- if section.settings.footer_body != blank -%}
+      <div>{{ section.settings.footer_body }}</div>
+      {%- endif -%}
+  
+      {%- if section.settings.footer_cta_link != blank and section.settings.footer_cta_label != blank -%}
+      <a class="btn {{ section.settings.footer_cta_theme }} {{ section.settings.footer_cta_size }}" href="{{ section.settings.footer_cta_link }}">{{ section.settings.footer_cta_label }}</a>
+      {%- endif -%}
+    </div>
+    {%- endif -%}
+      
+  </div>
+</section>
+
+<script>
+window.addEventListener('DOMContentLoaded', (event) => {
+
+  var searchParams = new URLSearchParams(window.location.search);
+  var discount = searchParams.get('discount');
+  document.getElementById("submitVariantChoice").addEventListener("click", function(evt){
+    evt.preventDefault();
+    evt.target.innerHTML = 'Submiting...';
+    let variant_id = document.querySelector('input[name="variant"]:checked').value;
+
+    let url = "/cart/"+variant_id+":1";
+    
+    if(discount) { url += "?discount="+discount; }
+    window.location.href = url;
+  });
+
+  var variantOptions = [].slice.call(document.querySelectorAll("input[name=variant]"));
+  var variantOption = variantOptions.map(function (ele) {
+    ele.addEventListener("change",function(evt) {
+      document.querySelector('.card-img-top').src = evt.target.dataset.image;
+    });
+  });
+
+});
+</script>
+
+
+        
+{% endif %}
+
+{% schema %}
+  {
+    "name": "Variant Chooser",
+    "settings": [
+      {
+        "type": "checkbox",
+        "id": "fluid_section",
+        "label": "Borderless container",
+        "default": false
+      },
+      {
+      	"type": "color",
+      	"id": "color_bg",
+      	"label": "Background color",
+      	"default": "rgba(0,0,0,0)"
+      },
+      {
+        "type": "text",
+        "id": "anchor_id",
+        "label": "Section Anchor ID"
+      },
+
+      {
+        "type": "text",
+        "id": "class",
+        "label": "Custom class"
+      },
+      {
+        "type": "header",
+        "content": "content"
+      },
+      {
+        "type": "product",
+        "id": "product",
+        "label": "Product"
+      },
+      {
+        "type": "select",
+        "id": "content_alignment",
+        "label": "Alignment",
+        "default": "",
+        "options": [
+          { "value": "text-center", "label": "Center" },
+          { "value": "", "label": "Left" },
+          { "value": "text-end", "label": "Right" }
+        ]
+      },
+      {
+        "type": "range",
+        "id": "max_width",
+        "label": "Max Width",
+        "min": 0,
+        "max": 1000,
+        "step": 10,
+        "unit": "px",
+        "default": 400,
+        "info": "set to 0 for no max width"
+      },
+      {
+        "type": "richtext",
+        "id": "message",
+        "label": "Form Message"
+      },
+      {
+        "type": "text",
+        "id": "form_cta_label",
+        "label": "Button Label",
+        "default": "Buy Now"
+      },
+      {
+        "type": "header",
+        "content": "Content"
+      },
+      {
+        "type": "select",
+        "id": "alignment",
+        "label": "Header Alignment",
+        "default": "",
+        "options": [
+          { "value": "text-center", "label": "Center" },
+          { "value": "", "label": "Left" },
+          { "value": "text-end", "label": "Right" }
+        ]
+      },
+      {
+        "type": "text",
+        "id": "pretitle",
+        "label": "Pre-Title"
+      },
+      {
+        "type": "color",
+        "id": "color_pretitle",
+        "label": "Pre-Title color",
+        "default": "rgba(0,0,0,0)"
+      },
+      {
+        "type": "html",
+        "id": "title",
+        "label": "Title"
+      },
+      {
+        "type": "select",
+        "id": "header_tag",
+        "label": "Title Tag Type",
+        "default": "h2",
+        "options": [ 
+		  { "value": "h1", "label": "h1" },
+          { "value": "h2", "label": "h2" },
+          { "value": "h3", "label": "h3" },
+          { "value": "h4", "label": "h4" }
+        ]
+      },
+      {
+        "type": "select",
+        "id": "display_class",
+        "label": "As Display Size",
+        "default": "",
+        "options": [ 
+          { "value": "", "label": "No" },
+          { "value": "display-1", "label": "Display 1" },
+          { "value": "display-2", "label": "Display 2" },
+          { "value": "display-3", "label": "Display 3" },
+          { "value": "display-4", "label": "Display 4" }
+        ]
+      },
+      {
+        "type": "color",
+        "id": "color_title",
+        "label": "Title color",
+        "default": "rgba(0,0,0,0)"
+      },
+      {
+        "type": "html",
+        "id": "description",
+        "label": "Body"
+      },
+      {
+        "type": "color",
+        "id": "color_body",
+        "label": "Body color",
+        "default": "rgba(0,0,0,0)"
+      },
+      {
+        "type": "header",
+        "content": "Button"
+      },
+      {
+        "type": "url",
+        "id": "cta_link",
+        "label": "Button Link",
+        "info": "Button will only show if a link is assigned"
+      },
+      {
+        "type": "text",
+        "id": "cta_label",
+        "label": "Button Label",
+        "default": "Get this thing"
+      },
+      {
+         "type": "select",
+         "id": "button_theme",
+		 "label": "Button Style",
+         "options": [
+            { "value": "btn-primary", "label": "Primary"},
+			{ "value": "btn-outline-primary", "label": "Primary Outline"},
+            { "value": "btn-secondary", "label": "Secondary"},
+			{ "value": "btn-outline-secondary", "label": "Secondary Outline"}
+         ],
+		 "default": "btn-primary"
+      },
+      {
+         "type": "select",
+         "id": "button_size",
+		 "label": "Button Size",
+         "options": [
+            { "value": "", "label": "Normal"},
+			{ "value": "btn-lg", "label": "Large"},
+            { "value": "btn-sm", "label": "Small"}
+         ],
+         "default": ""
+      }
+    ],
+    "presets": [
+      {
+        "name": "Variant Chooser"
+      }
+    ]
+  }
+{% endschema %}

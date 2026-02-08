@@ -1,0 +1,215 @@
+<style>
+  {%- unless section.settings.color_bg == "rgba(0,0,0,0)" -%}#section-{{ section.id }} {  background-color: {{ section.settings.color_bg }}!important; }{%- endunless -%}
+  {%- unless section.settings.color_title == "rgba(0,0,0,0)" -%}
+  	#section-{{ section.id }} .title { color: {{ section.settings.color_title }};  }
+    #section-{{ section.id }} .breadcrumb-item, #section-{{ section.id }} .breadcrumb-item a { color: {{ section.settings.color_title }}; }
+  {%- endunless -%}
+  {%- unless section.settings.max_width == 0 -%}#section-{{ section.id }} { max-width:{{ section.settings.max_width | append: "px" }}; margin:0 auto; }{%- endunless %}
+</style>
+
+<article id="section-{{ section.id }}" class="article {{ section.settings.class }}">
+  <div class="container{% if section.settings.fluid_section %}-fluid{% endif %}">
+
+    <div class="content header {{ section.settings.header_alignment }}">
+      {% render 'breadcrumbs' %}
+      <{{ section.settings.header_tag }} class="title">{{ article.title }}</{{ section.settings.header_tag }}>
+
+      {%- if section.settings.show_share_buttons -%}
+        {% render 'social-sharing', share_title: article.title, share_permalink: article.url, share_image: article.image %}
+      {%- endif -%}
+    </div>
+
+    <div class="body">{{ article.content }}</div>
+
+    <div class="{{ section.settings.header_alignment }}">
+      {%- if section.settings.blog_show_date -%}
+      <span class="blog-date">{{ 'blogs.article.published_at' | t: published_at:article.published_at | time_tag: '%B %Y' }}</span>
+      {%- endif -%}   
+        
+      {%- assign author = author_overwrite | default:article.author %}
+      {%- if section.settings.blog_show_author and author != blank -%}
+      <span class="blog-author">{{ 'blogs.article.by_author' | t: author: author }}</span>
+      {%- endif -%}
+    </div>
+  </div>
+</article>
+
+{%- if section.settings.recommend_enable -%}
+<style>
+  {%- unless section.settings.recommend_color_bg == "rgba(0,0,0,0)" -%}#recommended { background-color: {{ section.settings.recommend_color_bg }};  }{%- endunless -%}
+  {%- unless section.settings.recommend_color_title == "rgba(0,0,0,0)" -%}#recommended .title { color: {{ section.settings.recommend_color_title }};  }{%- endunless -%}
+</style>
+<section class="recommended">
+	<div class="container">
+      
+      {%- if section.settings.recommend_title != blank -%}
+      <div class="content header {{section.settings.recommend_alignment}}">
+      <{{ section.settings.recommend_header_tag }} class="title">{{ section.settings.recommend_title }}</{{ section.settings.recommend_header_tag }}>
+      </div>
+      {%- endif -%}
+        
+      <div class="row row-cols-1 row-cols-md-3 g-3 justify-content-center">
+        {% for suggestion in blog.articles limit: 3 %}
+          {% unless suggestion.id == article.id %}
+        	<div class="col">
+            {% render 'card-article', article:suggestion %}
+        	</div>
+          {% endunless %}
+        {% endfor %}
+      </div>
+
+	</div>
+</section>
+{%- endif -%}
+
+{% schema %}
+  {
+    "name": "Article",
+    "settings": [
+      {
+        "type": "checkbox",
+        "id": "fluid_section",
+        "label": "Borderless container",
+        "default": true
+      },
+      {
+      	"type": "color",
+      	"id": "color_bg",
+      	"label": "Background color",
+      	"default": "rgba(0,0,0,0)"
+      },
+      {
+        "type": "text",
+        "id": "anchor_id",
+        "label": "Section Anchor ID"
+      },
+      {
+        "type": "text",
+        "id": "class",
+        "label": "Custom class"
+      },
+      {
+        "type": "range",
+        "id": "max_width",
+        "label": "Article max width",
+        "min": 0,
+        "max": 1000,
+        "step": 10,
+        "unit": "px",
+        "default": 0,
+        "info": "set to 0 for no max width"
+      },
+      {
+        "type": "header",
+        "content": "Blog Header"
+      },
+      {
+        "type": "select",
+        "id": "header_alignment",
+        "label": "Alignment",
+        "default": "",
+        "options": [
+          { "value": "", "label": "Left" },
+          { "value": "text-center", "label": "Center"},
+          { "value": "text-right", "label": "Right" }
+        ]
+      },
+      {
+        "type": "select",
+        "id": "header_tag",
+        "label": "Title Tag Type",
+        "default": "h2",
+        "options": [ 
+		  { "value": "h1", "label": "h1" },
+          { "value": "h2", "label": "h2" },
+          { "value": "h3", "label": "h3" },
+          { "value": "h4", "label": "h4" }
+        ]
+      },
+      {
+        "type": "color",
+        "id": "color_title",
+        "label": "Title color",
+        "default": "rgba(0,0,0,0)"
+      },
+      {
+        "type": "checkbox",
+        "id": "blog_show_author",
+        "label": "Show author",
+        "default": true
+      },
+      {
+        "type": "checkbox",
+        "id": "blog_show_date",
+        "label": "Show date",
+        "default": true
+      },
+      {
+        "type": "header",
+        "content": "Blog Content"
+      },
+      {
+        "type": "checkbox",
+        "id": "show_share_buttons",
+        "label": "Show social sharing buttons",
+        "default": true
+      },
+      {
+        "type": "richtext",
+        "id": "blog_boilerplate",
+        "label": "Boilerplate"
+      },
+      {
+        "type": "header",
+        "content": "Recommended Articles"
+      },
+      {
+        "type": "checkbox",
+        "id": "recommend_enable",
+        "label": "Show other articles in this Blog",
+        "default": true
+      },
+      {
+        "type": "color",
+        "id": "recommend_color_bg",
+        "label": "Background Color",
+        "default": "rgba(0,0,0,0)"
+      },
+      {
+        "type": "text",
+        "id": "recommend_title",
+        "label": "Title Recommended Articles",
+        "default": "Other Articles"
+      },
+      {
+        "type": "color",
+        "id": "recommend_color_title",
+        "label": "Title color",
+        "default": "rgba(0,0,0,0)"
+      },
+      {
+        "type": "select",
+        "id": "recommend_alignment",
+        "label": "Title Alignment",
+        "default": "",
+        "options": [
+          { "value": "", "label": "Left" },
+          { "value": "text-center", "label": "Center"},
+          { "value": "text-right", "label": "Right" }
+        ]
+      },
+      {
+        "type": "select",
+        "id": "recommend_header_tag",
+        "label": "Recommended Tag Type",
+        "default": "h2",
+        "options": [ 
+		  { "value": "h1", "label": "h1" },
+          { "value": "h2", "label": "h2" },
+          { "value": "h3", "label": "h3" },
+          { "value": "h4", "label": "h4" }
+        ]
+      }
+    ]
+  }
+{% endschema %}

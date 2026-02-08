@@ -1,0 +1,166 @@
+<style>
+  {%- unless section.settings.color_bg == "rgba(0,0,0,0)" -%}#section-{{ section.id }} {  background-color: {{ section.settings.color_bg }}!important; }{%- endunless -%}
+  {%- unless section.settings.color_title == "rgba(0,0,0,0)" -%}#section-{{ section.id }} .title { color: {{ section.settings.color_title }};  }{%- endunless -%}
+  {%- unless section.settings.color_pretitle  == "rgba(0,0,0,0)" -%}#section-{{ block.id }} .pre-title { color: {{ section.settings.color_pretitle }};  }{%- endunless -%}
+  {%- unless section.settings.color_body  == "rgba(0,0,0,0)" -%}#section-{{ section.id }} p { color: {{ section.settings.color_body }};  }{%- endunless -%}
+</style>
+
+{%- if section.settings.anchor_id -%}<a name="{{section.settings.anchor_id}}" id="{{section.settings.anchor_id}}" class="anchor"></a>{%- endif -%}
+<section class="section-accordian" id="section-{{ section.id }}">
+  <div class="container{% if section.settings.fluid_section %}-fluid{% endif %} {{ section.settings.alignment }}">
+    
+    {% if section.settings.title != blank or section.settings.description != blank %}
+    <div class="content header">
+      {%- if section.settings.pretitle != blank -%}<p class="pre-title">{{ section.settings.pretitle }}</p>{%- endif -%}
+      {%- if section.settings.title != blank -%}
+        <{{ section.settings.header_tag }} class="title">{{ section.settings.title }}</{{ section.settings.header_tag }}>
+      {%- endif -%}
+
+      {%- if section.settings.body != blank -%}
+      <div class="body">{{ section.settings.body }}</div>
+   {%- endif -%}
+  	</div>
+  	{%- endif -%}
+
+      <div class="accordion" id="accordion-{{ section.id }}">
+
+        {% for block in section.blocks %}
+
+        {%- if block.settings.title != blank -%}
+        <div class="accordion-item">
+          <h2 class="accordion-header" id="heading-{{ block.id }}">
+            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-{{ block.id }}" aria-expanded="false" aria-controls="collapse-{{ block.id }}">
+              {{ block.settings.title }}
+            </button>
+          </h2>
+          <div id="collapse-{{ block.id }}" class="accordion-collapse collapse" aria-labelledby="heading-{{ block.id }}" data-bs-parent="#accordion-{{ section.id }}">
+            <div class="accordion-body">
+              {{ block.settings.body }}
+            </div>
+          </div>
+        </div>
+        {%- endif -%}
+        {% endfor %}
+
+      </div>
+
+  </div>
+</section>
+
+<style>
+  .section-accordian .content.header { padding-top:1rem;  padding-bottom:1rem; }
+  .accordion-button { font-size:1.4rem; }
+</style>
+
+{% schema %}
+  {
+    "name": "Accordian",
+    "settings": [
+      {
+        "type": "checkbox",
+        "id": "fluid_section",
+        "label": "Borderless container",
+        "default": false
+      },
+      {
+      	"type": "color",
+      	"id": "color_bg",
+      	"label": "Background color",
+      	"default": "rgba(0,0,0,0)"
+      },
+      {
+        "type": "text",
+        "id": "anchor_id",
+        "label": "Section Anchor ID"
+      },
+      {
+        "type": "text",
+        "id": "class",
+        "label": "Custom class"
+      },
+      {
+        "type": "header",
+        "content": "Header"
+      },
+      {
+        "type": "select",
+        "id": "alignment",
+        "label": "Alignment",
+        "default": "",
+        "options": [
+          { "value": "text-center", "label": "Center" },
+          { "value": "", "label": "Left" },
+          { "value": "text-end", "label": "Right" }
+        ]
+      },
+      {
+        "type": "text",
+        "id": "pretitle",
+        "label": "Pre-Title"
+      },
+      {
+        "type": "color",
+        "id": "color_pretitle",
+        "label": "Pre-Title color",
+        "default": "rgba(0,0,0,0)"
+      },
+      {
+        "type": "richtext",
+        "id": "title",
+        "label": "Title"
+      },
+      {
+        "type": "select",
+        "id": "header_tag",
+        "label": "Title Tag Type",
+        "default": "h2",
+        "options": [ 
+		  { "value": "h1", "label": "h1" },
+          { "value": "h2", "label": "h2" },
+          { "value": "h3", "label": "h3" },
+          { "value": "h4", "label": "h4" }
+        ]
+      },
+      {
+        "type": "color",
+        "id": "color_title",
+        "label": "Title color",
+        "default": "rgba(0,0,0,0)"
+      },
+      {
+        "type": "richtext",
+        "id": "body",
+        "label": "Body"
+      },
+      {
+        "type": "color",
+        "id": "color_body",
+        "label": "Body color",
+        "default": "rgba(0,0,0,0)"
+      }
+    ],
+   "blocks": [
+      {
+        "type": "tab",
+        "name": "Tab",
+        "settings": [
+          {
+            "type": "text",
+            "id": "title",
+            "label": "Label"
+          },
+          {
+            "type": "html",
+            "id": "body",
+            "label": "Body"
+          }
+        ]
+       }
+    ],
+    "presets": [
+      {
+        "name": "Accordian"
+      }
+    ]
+  }
+{% endschema %}

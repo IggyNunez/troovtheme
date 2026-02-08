@@ -1,0 +1,22 @@
+{%- assign current_variant = current_variant | default:product.selected_or_first_available_variant -%}
+
+{%- if product.variants.size > 1 -%}
+<div class="d-flex gap-2 flex-wrap mb-3 product-option" aria-label="Product flavor choice">
+  {% for variant in product.variants %}
+  <div>
+  <input type="radio" class="btn-check" name="id" id="variant-{{ variant.id }}" value="{{ variant.id }}" autocomplete="off"{% if variant.id == current_variant.id %} checked{% endif %}>
+  <label class="btn btn-outline-primary {{ variant.title | handle }}" for="variant-{{ variant.id }}">{{ variant.title }}</label>
+  </div>
+  {% endfor %}
+</div>
+{%- else -%}
+<input type="hidden" name="id" value="{{ current_variant.id }}"
+{%- endif -%}
+       
+<style>
+{% for variant in product.variants %}
+{% if variant.metafields.option.color %}
+.product-option input:checked + label.{{ variant.title | handle }} { background-color:{{ variant.metafields.option.color }}!important; border-color:{{ variant.metafields.option.color }}!important; }
+{% endif %}
+{% endfor %}
+</style>

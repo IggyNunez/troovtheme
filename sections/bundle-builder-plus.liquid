@@ -1,0 +1,3354 @@
+{%- comment -%}
+  Bundle Product Section - PRICING UPDATE
+  - Shows one-time purchase vs subscription pricing
+  - Discount badges and slashed original prices
+  - Per client specifications for 15/30/45 serving bundles
+  - UPDATED: Thumbnail at top, badge at bottom
+  - UPDATED: Leave price fields blank to hide One-Time or Subscribe pricing
+{%- endcomment -%}
+
+{%- liquid
+  # Get current product from page or default to bundle 2
+  if product
+    assign current_product = product
+    assign current_variant = product.selected_or_first_available_variant
+  else
+    assign current_product = all_products[section.settings.bundle_2_handle]
+    assign current_variant = current_product.selected_or_first_available_variant
+  endif
+  
+  # Load all bundles for selection
+  assign bundle_1 = all_products[section.settings.bundle_1_handle]
+  assign bundle_2 = all_products[section.settings.bundle_2_handle]
+  assign bundle_3 = all_products[section.settings.bundle_3_handle]
+  
+  assign bundle_1_variant = bundle_1.selected_or_first_available_variant
+  assign bundle_2_variant = bundle_2.selected_or_first_available_variant
+  assign bundle_3_variant = bundle_3.selected_or_first_available_variant
+-%}
+
+<style>
+  #bundle-product-{{ section.id }} {
+    background: {{ section.settings.bg_color }};
+    padding: {{ section.settings.section_padding_top }}px 0 {{ section.settings.section_padding_bottom }}px 0;
+  }
+  
+  .bundle-product-container {
+    max-width: {{ section.settings.container_width }}px;
+    margin: 0 auto;
+    padding: 0 {{ section.settings.container_padding }}px;
+  }
+  
+  .bundle-product-grid {
+    display: grid;
+    grid-template-columns: {% if section.settings.layout_reverse %}{{ section.settings.info_width }}fr {{ section.settings.gallery_width }}fr{% else %}{{ section.settings.gallery_width }}fr {{ section.settings.info_width }}fr{% endif %};
+    gap: {{ section.settings.grid_gap }}px;
+    align-items: start;
+  }
+  
+  /* === IMAGE GALLERY === */
+  .product-gallery {
+    {% if section.settings.gallery_sticky %}position: sticky;{% else %}position: relative;{% endif %}
+    top: 20px;
+    order: {% if section.settings.layout_reverse %}2{% else %}1{% endif %};
+  }
+  
+  .gallery-main {
+    position: relative;
+    border-radius: {{ section.settings.image_border_radius }}px;
+    overflow: hidden;
+    background: {{ section.settings.gallery_bg_gradient }};
+    margin-bottom: 15px;
+    {% if section.settings.image_shadow %}box-shadow: 0 4px 20px rgba(0,0,0,0.1);{% endif %}
+  }
+  
+  .gallery-main img {
+    width: 100%;
+    height: auto;
+    display: block;
+  }
+  
+  .gallery-thumbnails {
+    display: grid;
+    grid-template-columns: repeat({{ section.settings.thumbnail_columns }}, 1fr);
+    gap: {{ section.settings.thumbnail_gap }}px;
+  }
+  
+  .gallery-thumb {
+    border: 2px solid {{ section.settings.thumbnail_border_color }};
+    border-radius: {{ section.settings.thumbnail_border_radius }}px;
+    overflow: hidden;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  
+  .gallery-thumb:hover,
+  .gallery-thumb.active {
+    border-color: {{ section.settings.accent_color }};
+    {% if section.settings.thumbnail_hover_lift %}transform: translateY(-2px);{% endif %}
+  }
+  
+  .gallery-thumb img {
+    width: 100%;
+    height: auto;
+    display: block;
+  }
+  
+  /* === PRODUCT INFO === */
+  .product-info {
+    padding: {{ section.settings.info_padding }}px 0;
+    order: {% if section.settings.layout_reverse %}1{% else %}2{% endif %};
+  }
+  
+  .product-header h1 {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 5px;
+    margin: 0 0 {{ section.settings.title_margin_bottom }}px 0;
+  }
+  
+  .product-header h1 span:first-child {
+    align-self: flex-start;
+  }
+  
+  .product-header h1 span img {
+    width: {{ section.settings.title_icon_size }}px;
+    height: auto;
+    display: block;
+  }
+  
+  .product-header h1 .text-outline {
+    font-size: {{ section.settings.category_title_size }}px;
+    font-weight: {{ section.settings.title_font_weight }};
+    font-style: italic!important;
+    color: {{ section.settings.title_color }};
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    line-height: 1;
+  }
+  
+  .product-header h1 .variant-title {
+    font-size: {{ section.settings.title_font_size }}px;
+    font-weight: {{ section.settings.title_font_weight }};
+    color: {{ section.settings.title_color }};
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    line-height: {{ section.settings.title_line_height }};
+    font-style: italic!important;
+  }
+  
+  .product-tagline {
+    font-size: {{ section.settings.tagline_font_size }}px;
+    color: {{ section.settings.tagline_color }};
+    margin-bottom: {{ section.settings.tagline_margin_bottom }}px;
+    line-height: 1.6;
+  }
+  
+  .product-guarantee {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: {{ section.settings.guarantee_bg_color }};
+    color: {{ section.settings.guarantee_text_color }};
+    padding: {{ section.settings.guarantee_padding }}px {{ section.settings.guarantee_padding | times: 2 }}px;
+    border-radius: {{ section.settings.guarantee_border_radius }}px;
+    font-weight: 600;
+    margin-bottom: 15px;
+    font-size: {{ section.settings.guarantee_font_size }}px;
+  }
+  
+  .product-rating {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 30px;
+    font-size: {{ section.settings.rating_font_size }}px;
+  }
+  
+  .stars {
+    color: {{ section.settings.star_color }};
+    font-size: {{ section.settings.rating_font_size }}px;
+  }
+  
+  /* === BUNDLE SELECTOR === */
+  .bundle-selector {
+    margin: {{ section.settings.bundle_section_margin }}px 0;
+    
+  }
+  
+  .bundle-selector-label {
+    font-weight: {{ section.settings.bundle_label_weight }};
+    margin-bottom: {{ section.settings.bundle_label_margin }}px;
+    font-size: {{ section.settings.bundle_label_size }}px;
+    color: {{ section.settings.bundle_label_color }};
+  }
+  
+  .bundle-options {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: {{ section.settings.bundle_card_gap }}px;
+    margin-bottom: 30px;
+  }
+  
+  .bundle-option {
+    position: relative;
+    border: {{ section.settings.bundle_card_border_width }}px solid {{ section.settings.bundle_card_border_color }};
+    border-radius: {{ section.settings.bundle_card_radius }}px;
+    padding: {{ section.settings.bundle_card_padding }}px {{ section.settings.bundle_card_padding | times: 0.6 }}px;
+    text-align: center;
+    cursor: pointer;
+    transition: all {{ section.settings.bundle_transition_speed }}s;
+    background: {{ section.settings.bundle_card_bg }};
+    text-decoration: none;
+    color: inherit;
+    display: block;
+    {% if section.settings.bundle_card_shadow %}box-shadow: 0 2px 8px rgba(0,0,0,0.08);{% endif %}
+    padding-top: 50px; /* Extra space for thumbnail at top */
+  }
+  
+  .bundle-option:hover {
+    border-color: {{ section.settings.accent_color }};
+    {% if section.settings.bundle_hover_lift %}transform: translateY(-{{ section.settings.bundle_hover_distance }}px);{% endif %}
+    {% if section.settings.bundle_hover_shadow %}box-shadow: 0 {{ section.settings.bundle_hover_distance | times: 2 }}px {{ section.settings.bundle_hover_distance | times: 4 }}px rgba(0,0,0,0.12);{% endif %}
+    text-decoration: none;
+    color: inherit;
+  }
+  
+  .bundle-option.selected {
+    border-color: {{ section.settings.accent_color }};
+    border-width: {{ section.settings.bundle_selected_border_width }}px;
+    background: {{ section.settings.accent_color }}{{ section.settings.bundle_selected_bg_opacity }};
+  }
+  
+  /* UPDATED: Thumbnail now positioned at top */
+  .bundle-thumbnail {
+    width: 80px;
+    height: 80px;
+    position: absolute;
+    top: -40px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: block;
+    object-fit: contain;
+    z-index: 2;
+  }
+  
+  /* UPDATED: Badge now positioned at bottom */
+  .bundle-badge {
+    position: absolute;
+    bottom: -{{ section.settings.badge_offset }}px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: {{ section.settings.accent_color }};
+    color: white;
+    padding: {{ section.settings.badge_padding }}px {{ section.settings.badge_padding | times: 2 }}px;
+    border-radius: {{ section.settings.badge_radius }}px;
+    font-size: {{ section.settings.badge_font_size }}px;
+    font-weight: 700;
+    text-transform: uppercase;
+    white-space: nowrap;
+    z-index: 2;
+  }
+  
+  .bundle-badge.trial { background: {{ section.settings.badge_trial_color }}; }
+  .bundle-badge.best { background: {{ section.settings.badge_best_color }}; }
+  
+  .bundle-servings {
+    font-size: {{ section.settings.serving_font_size }}px;
+    font-weight: {{ section.settings.serving_font_weight }};
+    margin-bottom: 8px;
+    color: {{ section.settings.serving_color }};
+  }
+  
+  .bundle-pricing-wrapper {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-top: 8px;
+  }
+  
+  .bundle-price-row {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+  }
+  
+  .bundle-price-type {
+    font-size: 11px;
+    font-weight: 600;
+    color: #666;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  
+  .bundle-price-details {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  
+  .bundle-per-serving {
+    color: {{ section.settings.accent_color }};
+    font-size: {{ section.settings.per_serving_size }}px;
+    font-weight: {{ section.settings.per_serving_weight }};
+  }
+  
+  .bundle-original-price {
+    font-size: 12px;
+    color: #999;
+    text-decoration: line-through;
+  }
+  
+  .bundle-discount-tag {
+    display: inline-block;
+    background: #FFD700;
+    color: #000;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+  }
+  
+  /* === BUNDLE SHORT DESCRIPTION === */
+  .bundle-short-description {
+    font-size: {{ section.settings.bundle_description_font_size }}px;
+    color: {{ section.settings.bundle_description_color }};
+    margin: {{ section.settings.bundle_description_margin }}px 0;
+    line-height: 1.5;
+    text-align: center;
+  }
+  
+  /* === PRODUCT DESCRIPTION === */
+  .product-description {
+    margin: {{ section.settings.description_margin }}px 0;
+    line-height: {{ section.settings.description_line_height }};
+    color: {{ section.settings.description_color }};
+    font-size: {{ section.settings.description_font_size }}px;
+  }
+  
+  /* === SEAL WIDGET AREA === */
+  .seal-subscription-area {
+   
+    margin: 30px 0;
+    padding: {{ section.settings.seal_padding }}px;
+    background: {{ section.settings.seal_bg_color }};
+    border-radius: {{ section.settings.seal_border_radius }}px;
+    {% if section.settings.seal_border %}border: 1px solid {{ section.settings.seal_border_color }};{% endif %}
+  }
+  
+  .seal-subscription-area h3 {
+    margin: 0 0 15px 0;
+    font-size: {{ section.settings.seal_heading_size }}px;
+    color: {{ section.settings.seal_heading_color }};
+    font-weight: {{ section.settings.seal_heading_weight }};
+  }
+  
+  /* === ADD TO CART === */
+  .add-to-cart-section {
+    margin: 30px 0;
+  }
+  
+  .quantity-and-button-wrapper {
+    display: flex;
+    align-items: stretch;
+    gap: 0;
+    width: 100%;
+    border: {{ section.settings.pill_border_width }}px solid {{ section.settings.pill_border_color }};
+    border-radius: {{ section.settings.pill_border_radius }}px;
+    overflow: hidden;
+    background: {{ section.settings.pill_bg_color }};
+    {% if section.settings.pill_shadow_enabled %}box-shadow: {{ section.settings.pill_shadow }};{% endif %}
+  }
+  
+  .quantity-selector {
+    flex: 0 0 20%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    border: none;
+    border-right: {{ section.settings.pill_border_width }}px solid {{ section.settings.pill_border_color }};
+    border-radius: 0;
+    background: {{ section.settings.quantity_bg_color }};
+    padding: 0 8px;
+  }
+  
+  .quantity-selector label {
+    font-weight: {{ section.settings.quantity_label_weight }};
+    font-size: {{ section.settings.quantity_label_size }}px;
+    white-space: nowrap;
+    color: {{ section.settings.quantity_label_color }};
+    margin: 0;
+    display: block;
+  }
+  
+  .quantity-controls {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    border: none;
+  }
+  
+  .quantity-btn {
+    background: transparent;
+    border: none;
+    padding: 4px;
+    cursor: pointer;
+    font-size: {{ section.settings.quantity_btn_size }}px;
+    color: {{ section.settings.quantity_btn_color }};
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 22px;
+    height: 26px;
+    border-radius: 4px;
+    font-weight: {{ section.settings.quantity_btn_weight }};
+    line-height: 1;
+  }
+  
+  .quantity-btn:hover {
+    background: {{ section.settings.quantity_btn_hover_bg }};
+    color: {{ section.settings.quantity_btn_hover_color }};
+  }
+  
+  .quantity-btn:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+  }
+  
+  .quantity-input {
+    width: 30px;
+    padding: 6px 3px;
+    border: none;
+    text-align: center;
+    font-size: {{ section.settings.quantity_font_size }}px;
+    font-weight: {{ section.settings.quantity_font_weight }};
+    background: transparent;
+    color: {{ section.settings.quantity_input_color }};
+  }
+  
+  .quantity-input:focus {
+    outline: none;
+  }
+  
+  .add-to-cart-btn {
+    flex: 0 0 80%;
+    background: {{ section.settings.button_bg_color }};
+    color: {{ section.settings.button_text_color }};
+    border: none;
+    padding: {{ section.settings.button_padding_vertical }}px {{ section.settings.button_padding_horizontal }}px;
+    font-size: {{ section.settings.button_font_size }}px;
+    font-weight: {{ section.settings.button_font_weight }};
+    border-radius: 0;
+    cursor: pointer;
+    transition: all {{ section.settings.button_transition_speed }}s;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    text-align: {{ section.settings.button_text_align }};
+    display: flex;
+    align-items: center;
+    justify-content: {{ section.settings.button_text_justify }};
+  }
+  
+  .add-to-cart-btn:hover {
+    background: {{ section.settings.button_hover_bg_color }};
+    {% if section.settings.button_hover_lift %}transform: translateX(2px);{% endif %}
+  }
+  
+  .add-to-cart-btn:disabled {
+    background: #ccc;
+    cursor: not-allowed;
+  }
+  
+  /* === TRUST BADGES === */
+  .trust-badges {
+    display: grid;
+    grid-template-columns: repeat({{ section.settings.trust_badge_columns }}, 1fr);
+    gap: {{ section.settings.trust_badge_gap }}px;
+    margin-top: {{ section.settings.trust_badge_margin_top }}px;
+    padding-top: {{ section.settings.trust_badge_padding_top }}px;
+    {% if section.settings.trust_badge_border %}border-top: 1px solid {{ section.settings.trust_badge_border_color }};{% endif %}
+  }
+  
+  .trust-badge {
+    text-align: center;
+  }
+  
+  .trust-badge img {
+    width: {{ section.settings.trust_icon_size }}px;
+    height: {{ section.settings.trust_icon_size }}px;
+    margin-bottom: 10px;
+  }
+  
+  .trust-badge-title {
+    font-weight: {{ section.settings.trust_title_weight }};
+    margin-bottom: 5px;
+    font-size: {{ section.settings.trust_title_size }}px;
+    color: {{ section.settings.trust_title_color }};
+  }
+  
+  .trust-badge-text {
+    font-size: {{ section.settings.trust_text_size }}px;
+    color: {{ section.settings.trust_text_color }};
+  }
+  
+  /* === STICKY MOBILE BUTTON === */
+  .sticky-mobile-cta {
+    display: none;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    padding: {{ section.settings.sticky_button_padding }}px;
+    background: {{ section.settings.sticky_button_bg }};
+    box-shadow: 0 -4px 20px rgba(0,0,0,0.15);
+    z-index: 999;
+    transform: translateY(100%);
+    transition: transform 0.3s ease-in-out;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+  }
+  
+  .sticky-mobile-cta.visible {
+    transform: translateY(0);
+  }
+  
+  .sticky-mobile-cta-button {
+    width: 100%;
+    background: {{ section.settings.button_bg_color }};
+    color: {{ section.settings.button_text_color }};
+    border: none;
+    padding: {{ section.settings.sticky_button_padding_vertical }}px;
+    font-size: {{ section.settings.sticky_button_font_size }}px;
+    font-weight: {{ section.settings.button_font_weight }};
+    border-radius: {{ section.settings.sticky_button_radius }}px;
+    cursor: pointer;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+    transition: transform 0.2s, box-shadow 0.2s;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  
+  .sticky-mobile-cta-button:active {
+    transform: scale(0.98);
+  }
+  
+  @media (max-width: 768px) {
+    .sticky-mobile-cta {
+      display: block;
+    }
+  }
+  
+  /* === RESPONSIVE === */
+  @media (max-width: 1024px) {
+    .bundle-product-grid {
+      gap: {{ section.settings.grid_gap_tablet }}px;
+    }
+  }
+  
+  @media (max-width: 768px) {
+    .bundle-product-grid {
+      grid-template-columns: 1fr;
+      gap: {{ section.settings.grid_gap_mobile }}px;
+    }
+    
+    .product-gallery {
+      position: static;
+      order: 1;
+    }
+    
+    .product-info {
+      order: 2;
+    }
+    
+    .bundle-options {
+      grid-template-columns: repeat({{ section.settings.bundle_mobile_columns }}, 1fr);
+      gap: {{ section.settings.bundle_card_gap_mobile }}px;
+    }
+    
+    .bundle-option {
+      padding-top: 40px; /* Adjusted for smaller mobile thumbnail */
+    }
+    
+    .bundle-pricing-wrapper {
+      gap: 4px;
+    }
+    
+    .bundle-price-type {
+      font-size: 9px;
+    }
+    
+    .bundle-per-serving {
+      font-size: {{ section.settings.per_serving_size_mobile }}px;
+    }
+    
+    .bundle-original-price {
+      font-size: 10px;
+    }
+    
+    .bundle-discount-tag {
+      font-size: 8px;
+      padding: 1px 4px;
+    }
+    
+    .trust-badges {
+      grid-template-columns: repeat({{ section.settings.trust_badge_mobile_columns }}, 1fr);
+    }
+    
+    .product-header h1 {
+      font-size: {{ section.settings.title_font_size_mobile }}px;
+    }
+    .product-header h1 .text-outline {
+      font-size: {{ section.settings.title_font_size_mobile }}px;
+      font-weight: {{ section.settings.title_font_weight }};
+    }
+  
+    .product-header h1 .variant-title {
+      font-size: {{ section.settings.title_font_size_mobile }}px;
+      font-weight: {{ section.settings.title_font_weight }};
+    }
+    .bundle-servings {
+      font-size: {{ section.settings.serving_font_size_mobile }}px;
+    }
+    
+    /* UPDATED: Mobile thumbnail positioning */
+    .bundle-thumbnail {
+      width: 60px;
+      height: 60px;
+      top: -30px;
+    }
+    
+    .quantity-and-button-wrapper {
+      flex-direction: row;
+      gap: 0;
+    }
+    
+    .quantity-selector {
+      flex: 0 0 20%;
+      border-right: 2px solid {{ section.settings.pill_border_color }};
+      border-bottom: none;
+      padding: 0 4px;
+      gap: 3px;
+    }
+    
+    .quantity-selector label {
+      display: block;
+      font-size: 11px;
+    }
+    
+    .quantity-controls {
+      gap: 3px;
+    }
+    
+    .quantity-btn {
+      min-width: 18px;
+      height: 20px;
+      padding: 2px;
+      font-size: 13px;
+    }
+    
+    .quantity-input {
+      width: 26px;
+      padding: 4px 1px;
+      font-size: 13px;
+    }
+    
+    .add-to-cart-btn {
+      flex: 0 0 80%;
+      font-size: 14px;
+      padding: {{ section.settings.button_padding_vertical }}px 15px;
+      justify-content: center;
+      text-align: center;
+    }
+  }
+  
+  /* === COLLAPSIBLE ACCORDIONS === */
+  .product-accordions {
+    margin-top: {{ section.settings.accordion_margin_top }}px;
+    {% if section.settings.accordion_border_top %}border-top: 1px solid {{ section.settings.accordion_border_color }};{% endif %}
+  }
+
+  .accordion-item {
+    border-bottom: 1px solid {{ section.settings.accordion_border_color }};
+  }
+
+  .accordion-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: {{ section.settings.accordion_header_padding }}px 0;
+    cursor: pointer;
+    user-select: none;
+    transition: all 0.3s;
+  }
+
+  .accordion-header:hover {
+    opacity: 0.7;
+  }
+
+  .accordion-title {
+    font-size: {{ section.settings.accordion_title_size }}px;
+    font-weight: {{ section.settings.accordion_title_weight }};
+    color: {{ section.settings.accordion_title_color }};
+    margin: 0;
+  }
+
+  .accordion-icon {
+    font-size: {{ section.settings.accordion_icon_size }}px;
+    color: {{ section.settings.accordion_icon_color }};
+    transition: transform 0.3s;
+    line-height: 1;
+  }
+
+  .accordion-item.active .accordion-icon {
+    transform: rotate(45deg);
+  }
+
+  .accordion-content {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease-out;
+  }
+
+  .accordion-content-inner {
+    padding: 0 0 {{ section.settings.accordion_content_padding }}px 0;
+    font-size: {{ section.settings.accordion_content_size }}px;
+    line-height: {{ section.settings.accordion_content_line_height }};
+    color: {{ section.settings.accordion_content_color }};
+  }
+
+  .accordion-content-inner p:last-child {
+    margin-bottom: 0;
+  }
+  
+  /* === GALLERY ARROWS === */
+  .gallery-arrows {
+    position: absolute;
+    top: 50%;
+    left: 0;
+    right: 0;
+    transform: translateY(-50%);
+    display: flex;
+    justify-content: space-between;
+    padding: 0 {{ section.settings.arrow_padding }}px;
+    pointer-events: none;
+    z-index: 10;
+  }
+
+  .gallery-arrow {
+    pointer-events: all;
+    background: {{ section.settings.arrow_bg_color }};
+    color: {{ section.settings.arrow_icon_color }};
+    border: {{ section.settings.arrow_border_width }}px solid {{ section.settings.arrow_border_color }};
+    border-radius: {{ section.settings.arrow_border_radius }}px;
+    width: {{ section.settings.arrow_size }}px;
+    height: {{ section.settings.arrow_size }}px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s;
+    font-size: {{ section.settings.arrow_icon_size }}px;
+    font-weight: bold;
+    user-select: none;
+    {% if section.settings.arrow_shadow %}box-shadow: 0 2px 8px rgba(0,0,0,0.15);{% endif %}
+  }
+
+  .gallery-arrow:hover {
+    background: {{ section.settings.arrow_hover_bg_color }};
+    color: {{ section.settings.arrow_hover_icon_color }};
+    {% if section.settings.arrow_hover_scale %}transform: scale(1.1);{% endif %}
+  }
+
+  .gallery-arrow:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+  }
+
+  .gallery-arrow.prev {
+    {% if section.settings.arrow_position == 'inside' %}
+      margin-left: 0;
+    {% else %}
+      margin-left: -{{ section.settings.arrow_outside_offset }}px;
+    {% endif %}
+  }
+
+  .gallery-arrow.next {
+    {% if section.settings.arrow_position == 'inside' %}
+      margin-right: 0;
+    {% else %}
+      margin-right: -{{ section.settings.arrow_outside_offset }}px;
+    {% endif %}
+  }
+
+  @media (max-width: 768px) {
+    .gallery-arrows {
+      padding: 0 {{ section.settings.arrow_padding_mobile }}px;
+    }
+    
+    .gallery-arrow {
+      width: {{ section.settings.arrow_size_mobile }}px;
+      height: {{ section.settings.arrow_size_mobile }}px;
+      font-size: {{ section.settings.arrow_icon_size_mobile }}px;
+    }
+  }
+</style>
+
+<section id="bundle-product-{{ section.id }}">
+  <div class="bundle-product-container">
+    <div class="bundle-product-grid">
+      
+      <!-- LEFT: IMAGE GALLERY -->
+      <div class="product-gallery">
+        <div class="gallery-main">
+          {%- if current_product.images.size > 0 -%}
+            <img src="{{ current_product.images[0] | image_url: width: 800 }}" 
+                 alt="{{ current_product.title }}"
+                 id="main-image-{{ section.id }}"
+                 data-current-index="0">
+          {%- else -%}
+            <img src="{{ 'product-placeholder.svg' | asset_url }}" alt="Product">
+          {%- endif -%}
+          
+          {%- if section.settings.show_arrows and current_product.images.size > 1 -%}
+          <div class="gallery-arrows">
+            <button class="gallery-arrow prev" onclick="changeImage('prev', '{{ section.id }}')" aria-label="Previous image">
+              &#8249;
+            </button>
+            <button class="gallery-arrow next" onclick="changeImage('next', '{{ section.id }}')" aria-label="Next image">
+              &#8250;
+            </button>
+          </div>
+          {%- endif -%}
+        </div>
+        
+        {%- if current_product.images.size > 1 and section.settings.show_thumbnails -%}
+        <div class="gallery-thumbnails">
+          {%- for image in current_product.images limit: section.settings.thumbnail_limit -%}
+            <div class="gallery-thumb{% if forloop.first %} active{% endif %}" 
+                 data-image-url="{{ image | image_url: width: 800 }}"
+                 data-index="{{ forloop.index0 }}">
+              <img src="{{ image | image_url: width: 150 }}" alt="{{ current_product.title }}">
+            </div>
+          {%- endfor -%}
+        </div>
+        {%- endif -%}
+      </div>
+      
+      <!-- RIGHT: PRODUCT INFO -->
+      <div class="product-info">
+        
+        <!-- Header -->
+        <div class="product-header">
+          <h1 class="product-header h1">
+            <span>
+              {%- if section.settings.title_icon != blank -%}
+                <img src="{{ section.settings.title_icon | image_url: width: 100 }}">
+              {%- else -%}
+                <img src="https://cdn.shopify.com/s/files/1/0611/0982/9863/files/icon_leaf_energy_black.png?v=1660246610">
+              {%- endif -%}
+            </span>
+            <span class="text-outline">{{ section.settings.category_title | default: "Energy Mix" }}</span>
+            <span class="variant-title">{{ current_product.title }}</span>
+          </h1>
+          
+          {%- if section.settings.product_tagline != blank -%}
+            <p class="product-tagline">{{ section.settings.product_tagline }}</p>
+          {%- endif -%}
+          
+          {%- if section.settings.show_guarantee -%}
+            <div class="product-guarantee">
+              {% if section.settings.show_guarantee_icon %}
+              <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+                <path d="M10 2L12.5 7L18 8L14 12L15 18L10 15L5 18L6 12L2 8L7.5 7L10 2Z"/>
+              </svg>
+              {% endif %}
+              {{ section.settings.guarantee_text }}
+            </div>
+          {%- endif -%}
+          
+          {%- if section.settings.show_rating -%}
+            <div class="product-rating">
+              <span class="stars">★★★★★</span>
+              <span>{{ section.settings.rating_text }}</span>
+            </div>
+          {%- endif -%}
+        </div>
+        
+        <!-- Bundle Selector -->
+        <div class="bundle-selector" id="selector">
+          <div class="bundle-selector-label">{{ section.settings.bundle_selector_heading }}</div>
+          
+          <div class="bundle-options">
+            
+            {%- if bundle_1 != blank -%}
+            <a href="/products/{{ bundle_1.handle }}#selector" 
+               class="bundle-option{% if current_product.handle == bundle_1.handle %} selected{% endif %}"
+               aria-label="Select {{ section.settings.bundle_1_servings }} Servings bundle">
+              
+              {%- if section.settings.bundle_1_thumbnail != blank -%}
+                <img src="{{ section.settings.bundle_1_thumbnail | image_url: width: 160 }}" 
+                     alt="{{ section.settings.bundle_1_servings }} Servings"
+                     class="bundle-thumbnail">
+              {%- endif -%}
+              
+              <div class="bundle-servings">{{ section.settings.bundle_1_servings }} Servings</div>
+              
+              <div class="bundle-pricing-wrapper">
+                {%- if section.settings.bundle_1_onetime_price != blank -%}
+                <div class="bundle-price-row">
+                  <div class="bundle-price-type">One-Time</div>
+                  <div class="bundle-price-details">
+                    <span class="bundle-per-serving">${{ section.settings.bundle_1_onetime_price }}/serving</span>
+                  </div>
+                </div>
+                {%- endif -%}
+                {%- if section.settings.bundle_1_subscribe_price != blank -%}
+                <div class="bundle-price-row">
+                  <div class="bundle-price-type">Subscribe</div>
+                  <div class="bundle-price-details">
+                    <span class="bundle-per-serving">${{ section.settings.bundle_1_subscribe_price }}/serving</span>
+                  </div>
+                </div>
+                {%- endif -%}
+              </div>
+              
+              {%- if section.settings.bundle_1_badge != blank -%}
+                <div class="bundle-badge trial">{{ section.settings.bundle_1_badge }}</div>
+              {%- endif -%}
+            </a>
+            {%- endif -%}
+            
+            {%- if bundle_2 != blank -%}
+            <a href="/products/{{ bundle_2.handle }}#selector" 
+               class="bundle-option{% if current_product.handle == bundle_2.handle %} selected{% endif %}"
+               aria-label="Select {{ section.settings.bundle_2_servings }} Servings bundle">
+              
+              {%- if section.settings.bundle_2_thumbnail != blank -%}
+                <img src="{{ section.settings.bundle_2_thumbnail | image_url: width: 160 }}" 
+                     alt="{{ section.settings.bundle_2_servings }} Servings"
+                     class="bundle-thumbnail">
+              {%- endif -%}
+              
+              <div class="bundle-servings">{{ section.settings.bundle_2_servings }} Servings</div>
+              
+              <div class="bundle-pricing-wrapper">
+                {%- if section.settings.bundle_2_onetime_price != blank -%}
+                <div class="bundle-price-row">
+                  <div class="bundle-price-type">One-Time</div>
+                  <div class="bundle-price-details">
+                    <span class="bundle-per-serving">${{ section.settings.bundle_2_onetime_price }}/serving</span>
+                    {%- if section.settings.bundle_2_original_price != blank and section.settings.bundle_2_original_price != "0" -%}
+                      <span class="bundle-original-price">${{ section.settings.bundle_2_original_price }}</span>
+                    {%- endif -%}
+                    {%- if section.settings.bundle_2_onetime_discount != blank -%}
+                      <span class="bundle-discount-tag">{{ section.settings.bundle_2_onetime_discount }}</span>
+                    {%- endif -%}
+                  </div>
+                </div>
+                {%- endif -%}
+                {%- if section.settings.bundle_2_subscribe_price != blank -%}
+                <div class="bundle-price-row">
+                  <div class="bundle-price-type">Subscribe</div>
+                  <div class="bundle-price-details">
+                    <span class="bundle-per-serving">${{ section.settings.bundle_2_subscribe_price }}/serving</span>
+                    {%- if section.settings.bundle_2_original_price != blank and section.settings.bundle_2_original_price != "0" -%}
+                      <span class="bundle-original-price">${{ section.settings.bundle_2_original_price }}</span>
+                    {%- endif -%}
+                    {%- if section.settings.bundle_2_subscribe_discount != blank -%}
+                      <span class="bundle-discount-tag">{{ section.settings.bundle_2_subscribe_discount }}</span>
+                    {%- endif -%}
+                  </div>
+                </div>
+                {%- endif -%}
+              </div>
+              
+              {%- if section.settings.bundle_2_badge != blank -%}
+                <div class="bundle-badge">{{ section.settings.bundle_2_badge }}</div>
+              {%- endif -%}
+            </a>
+            {%- endif -%}
+            
+            {%- if bundle_3 != blank -%}
+            <a href="/products/{{ bundle_3.handle }}#selector" 
+               class="bundle-option{% if current_product.handle == bundle_3.handle %} selected{% endif %}"
+               aria-label="Select {{ section.settings.bundle_3_servings }} Servings bundle">
+              
+              {%- if section.settings.bundle_3_thumbnail != blank -%}
+                <img src="{{ section.settings.bundle_3_thumbnail | image_url: width: 160 }}" 
+                     alt="{{ section.settings.bundle_3_servings }} Servings"
+                     class="bundle-thumbnail">
+              {%- endif -%}
+              
+              <div class="bundle-servings">{{ section.settings.bundle_3_servings }} Servings</div>
+              
+              <div class="bundle-pricing-wrapper">
+                {%- if section.settings.bundle_3_onetime_price != blank -%}
+                <div class="bundle-price-row">
+                  <div class="bundle-price-type">One-Time</div>
+                  <div class="bundle-price-details">
+                    <span class="bundle-per-serving">${{ section.settings.bundle_3_onetime_price }}/serving</span>
+                    {%- if section.settings.bundle_3_original_price != blank and section.settings.bundle_3_original_price != "0" -%}
+                      <span class="bundle-original-price">${{ section.settings.bundle_3_original_price }}</span>
+                    {%- endif -%}
+                    {%- if section.settings.bundle_3_onetime_discount != blank -%}
+                      <span class="bundle-discount-tag">{{ section.settings.bundle_3_onetime_discount }}</span>
+                    {%- endif -%}
+                  </div>
+                </div>
+                {%- endif -%}
+                {%- if section.settings.bundle_3_subscribe_price != blank -%}
+                <div class="bundle-price-row">
+                  <div class="bundle-price-type">Subscribe</div>
+                  <div class="bundle-price-details">
+                    <span class="bundle-per-serving">${{ section.settings.bundle_3_subscribe_price }}/serving</span>
+                    {%- if section.settings.bundle_3_original_price != blank and section.settings.bundle_3_original_price != "0" -%}
+                      <span class="bundle-original-price">${{ section.settings.bundle_3_original_price }}</span>
+                    {%- endif -%}
+                    {%- if section.settings.bundle_3_subscribe_discount != blank -%}
+                      <span class="bundle-discount-tag">{{ section.settings.bundle_3_subscribe_discount }}</span>
+                    {%- endif -%}
+                  </div>
+                </div>
+                {%- endif -%}
+              </div>
+              
+              {%- if section.settings.bundle_3_badge != blank -%}
+                <div class="bundle-badge best">{{ section.settings.bundle_3_badge }}</div>
+              {%- endif -%}
+            </a>
+            {%- endif -%}
+            
+          </div>
+          
+          {%- if section.settings.bundle_short_description != blank -%}
+            <div class="bundle-short-description">
+              {{ section.settings.bundle_short_description }}
+            </div>
+          {%- endif -%}
+        </div>
+        
+        <!-- Seal Subscription Widget -->
+        {%- if section.settings.show_seal_widget -%}
+        <div class="seal-subscription-area">
+          <h3>{{ section.settings.seal_heading_text }}</h3>
+          <div class="sealsubs-target-element" 
+               data-handle="{{ current_product.handle }}"
+               data-selector="form[action*=/cart/add]">
+            <!-- Seal widget loads here automatically -->
+          </div>
+        </div>
+        {%- endif -%}
+        
+        <!-- Add to Cart Form -->
+        <form action="/cart/add" method="post" class="add-to-cart-section">
+          
+          <div class="quantity-and-button-wrapper">
+            {%- if section.settings.show_quantity -%}
+            <div class="quantity-selector">
+              <label for="quantity-{{ section.id }}">{{ section.settings.quantity_label }}</label>
+              <div class="quantity-controls">
+                <button type="button" class="quantity-btn quantity-decrease" data-quantity-decrease aria-label="Decrease quantity">&lt;</button>
+                <input type="number" 
+                       class="quantity-input"
+                       id="quantity-{{ section.id }}" 
+                       name="quantity" 
+                       value="1" 
+                       min="1" 
+                       max="{{ section.settings.quantity_max }}"
+                       readonly
+                       aria-label="Quantity">
+                <button type="button" class="quantity-btn quantity-increase" data-quantity-increase aria-label="Increase quantity">&gt;</button>
+              </div>
+            </div>
+            {%- endif -%}
+            
+            <input type="hidden" 
+                   name="id" 
+                   value="{{ current_variant.id }}">
+            
+            <button type="submit" class="add-to-cart-btn">
+              {{ section.settings.cta_text }}
+            </button>
+          </div>
+          
+        </form>
+        
+        <!-- Trust Badges -->
+        {%- if section.blocks.size > 0 and section.settings.show_trust_badges -%}
+        <div class="trust-badges">
+          {%- for block in section.blocks -%}
+            {%- case block.type -%}
+              {%- when 'trust_badge' -%}
+                <div class="trust-badge" {{ block.shopify_attributes }}>
+                  {%- if block.settings.icon != blank -%}
+                    <img src="{{ block.settings.icon | image_url: width: 100 }}" alt="{{ block.settings.title }}">
+                  {%- endif -%}
+                  <div class="trust-badge-title">{{ block.settings.title }}</div>
+                  {%- if block.settings.description != blank -%}
+                    <div class="trust-badge-text">{{ block.settings.description }}</div>
+                  {%- endif -%}
+                </div>
+            {%- endcase -%}
+          {%- endfor -%}
+        </div>
+        {%- endif -%}
+        
+        <!-- Product Description -->
+        {%- if section.settings.show_description -%}
+        <div class="product-description">
+          {{ current_product.description }}
+        </div>
+        {%- endif -%}
+        
+        <!-- Collapsible Accordions -->
+        {%- if section.settings.show_accordions -%}
+        <div class="product-accordions">
+          {%- for block in section.blocks -%}
+            {%- case block.type -%}
+              {%- when 'accordion' -%}
+                <div class="accordion-item" {{ block.shopify_attributes }}>
+                  <div class="accordion-header" onclick="toggleAccordion(this)">
+                    <h3 class="accordion-title">{{ block.settings.title }}</h3>
+                    <span class="accordion-icon">+</span>
+                  </div>
+                  <div class="accordion-content">
+                    <div class="accordion-content-inner">
+                      {{ block.settings.content }}
+                    </div>
+                  </div>
+                </div>
+            {%- endcase -%}
+          {%- endfor -%}
+        </div>
+        {%- endif -%}
+      </div>
+      
+    </div>
+  </div>
+  
+  <!-- Sticky Mobile CTA -->
+  {%- if section.settings.show_sticky_mobile_cta -%}
+  <div class="sticky-mobile-cta" id="sticky-cta-{{ section.id }}">
+    <button type="button" class="sticky-mobile-cta-button" onclick="document.getElementById('selector').scrollIntoView({ behavior: 'smooth' })">
+      {{ section.settings.sticky_button_text }}
+    </button>
+  </div>
+  {%- endif -%}
+</section>
+
+<script>
+(function() {
+  const sectionId = '{{ section.id }}';
+  const sectionEl = document.getElementById(`bundle-product-${sectionId}`);
+  
+  if (!sectionEl) return;
+  
+  // Gallery thumbnail clicks
+  const galleryThumbs = sectionEl.querySelectorAll('.gallery-thumb');
+  const mainImage = document.getElementById(`main-image-${sectionId}`);
+  
+  galleryThumbs.forEach((thumb, index) => {
+    thumb.addEventListener('click', function() {
+      galleryThumbs.forEach(t => t.classList.remove('active'));
+      this.classList.add('active');
+      
+      const imageUrl = this.dataset.imageUrl;
+      if (mainImage) {
+        mainImage.src = imageUrl;
+        mainImage.dataset.currentIndex = index;
+      }
+    });
+  });
+  
+  // Quantity controls
+  const quantityInput = document.getElementById(`quantity-${sectionId}`);
+  const decreaseBtn = sectionEl.querySelector('[data-quantity-decrease]');
+  const increaseBtn = sectionEl.querySelector('[data-quantity-increase]');
+  
+  if (quantityInput && decreaseBtn && increaseBtn) {
+    function updateQuantity(change) {
+      const currentValue = parseInt(quantityInput.value) || 1;
+      const newValue = currentValue + change;
+      const min = parseInt(quantityInput.min) || 1;
+      const max = parseInt(quantityInput.max) || 10;
+      
+      if (newValue >= min && newValue <= max) {
+        quantityInput.value = newValue;
+      }
+      
+      // Update button states
+      decreaseBtn.disabled = newValue <= min;
+      increaseBtn.disabled = newValue >= max;
+    }
+    
+    decreaseBtn.addEventListener('click', () => updateQuantity(-1));
+    increaseBtn.addEventListener('click', () => updateQuantity(1));
+    
+    // Initialize button states
+    const initialValue = parseInt(quantityInput.value) || 1;
+    const min = parseInt(quantityInput.min) || 1;
+    decreaseBtn.disabled = initialValue <= min;
+  }
+  
+  // Sticky mobile CTA behavior
+  {% if section.settings.show_sticky_mobile_cta %}
+  const stickyButton = document.getElementById(`sticky-cta-${sectionId}`);
+  const addToCartSection = sectionEl.querySelector('.add-to-cart-section');
+  
+  if (stickyButton && addToCartSection) {
+    function checkStickyButton() {
+      // Only run on mobile screens
+      if (window.innerWidth > 768) {
+        stickyButton.classList.remove('visible');
+        return;
+      }
+      
+      const addToCartRect = addToCartSection.getBoundingClientRect();
+      const windowHeight = window.innerHeight;
+      
+      // Check if add to cart button is below the fold or above viewport
+      const isAddToCartVisible = addToCartRect.top < windowHeight && addToCartRect.bottom > 0;
+      
+      // Show sticky button when:
+      // 1. User scrolled down at least 200px
+      // 2. Add to cart button is not visible
+      if (window.scrollY > 200 && !isAddToCartVisible) {
+        stickyButton.classList.add('visible');
+      } else {
+        stickyButton.classList.remove('visible');
+      }
+    }
+    
+    // Check on scroll with throttle
+    let ticking = false;
+    window.addEventListener('scroll', function() {
+      if (!ticking) {
+        window.requestAnimationFrame(function() {
+          checkStickyButton();
+          ticking = false;
+        });
+        ticking = true;
+      }
+    });
+    
+    // Check on resize (for orientation changes)
+    window.addEventListener('resize', function() {
+      checkStickyButton();
+    });
+    
+    // Check on load and after a short delay (for dynamic content)
+    checkStickyButton();
+    setTimeout(checkStickyButton, 500);
+  }
+  {% endif %}
+  
+})();
+
+// Accordion toggle function
+function toggleAccordion(header) {
+  const item = header.parentElement;
+  const content = item.querySelector('.accordion-content');
+  const isActive = item.classList.contains('active');
+  
+  // Close all accordions in the same section
+  const section = item.closest('.product-accordions');
+  if (section) {
+    section.querySelectorAll('.accordion-item').forEach(acc => {
+      acc.classList.remove('active');
+      acc.querySelector('.accordion-content').style.maxHeight = null;
+    });
+  }
+  
+  // Open clicked accordion if it wasn't active
+  if (!isActive) {
+    item.classList.add('active');
+    content.style.maxHeight = content.scrollHeight + 'px';
+  }
+}
+
+// Gallery arrow navigation
+window.changeImage = function(direction, sectionId) {
+  const mainImage = document.getElementById(`main-image-${sectionId}`);
+  const sectionEl = document.getElementById(`bundle-product-${sectionId}`);
+  
+  if (!mainImage || !sectionEl) return;
+  
+  const thumbnails = sectionEl.querySelectorAll('.gallery-thumb');
+  if (thumbnails.length === 0) return;
+  
+  let currentIndex = parseInt(mainImage.dataset.currentIndex) || 0;
+  const totalImages = thumbnails.length;
+  
+  // Calculate new index
+  if (direction === 'next') {
+    currentIndex = (currentIndex + 1) % totalImages;
+  } else {
+    currentIndex = (currentIndex - 1 + totalImages) % totalImages;
+  }
+  
+  // Update main image
+  const newImageUrl = thumbnails[currentIndex].dataset.imageUrl;
+  mainImage.src = newImageUrl;
+  mainImage.dataset.currentIndex = currentIndex;
+  
+  // Update active thumbnail
+  thumbnails.forEach((thumb, index) => {
+    thumb.classList.toggle('active', index === currentIndex);
+  });
+};
+</script>
+
+{% schema %}
+{
+  "name": "Bundle Product (EP)",
+  "settings": [
+    {
+      "type": "header",
+      "content": "📐 Layout & Spacing"
+    },
+    {
+      "type": "range",
+      "id": "container_width",
+      "min": 1000,
+      "max": 1600,
+      "step": 50,
+      "unit": "px",
+      "label": "Container Width",
+      "default": 1400
+    },
+    {
+      "type": "range",
+      "id": "container_padding",
+      "min": 0,
+      "max": 60,
+      "step": 5,
+      "unit": "px",
+      "label": "Container Padding",
+      "default": 20
+    },
+    {
+      "type": "range",
+      "id": "section_padding_top",
+      "min": 0,
+      "max": 120,
+      "step": 10,
+      "unit": "px",
+      "label": "Section Padding Top",
+      "default": 40
+    },
+    {
+      "type": "range",
+      "id": "section_padding_bottom",
+      "min": 0,
+      "max": 120,
+      "step": 10,
+      "unit": "px",
+      "label": "Section Padding Bottom",
+      "default": 40
+    },
+    {
+      "type": "range",
+      "id": "gallery_width",
+      "min": 1,
+      "max": 2,
+      "step": 0.1,
+      "label": "Gallery Column Width",
+      "default": 1,
+      "info": "1 = Equal width, 1.2 = Wider gallery"
+    },
+    {
+      "type": "range",
+      "id": "info_width",
+      "min": 1,
+      "max": 2,
+      "step": 0.1,
+      "label": "Info Column Width",
+      "default": 1,
+      "info": "1 = Equal width, 1.2 = Wider info"
+    },
+    {
+      "type": "checkbox",
+      "id": "layout_reverse",
+      "label": "Swap Gallery/Info Position",
+      "default": false
+    },
+    {
+      "type": "range",
+      "id": "grid_gap",
+      "min": 20,
+      "max": 100,
+      "step": 10,
+      "unit": "px",
+      "label": "Grid Gap (Desktop)",
+      "default": 60
+    },
+    {
+      "type": "range",
+      "id": "grid_gap_tablet",
+      "min": 20,
+      "max": 80,
+      "step": 10,
+      "unit": "px",
+      "label": "Grid Gap (Tablet)",
+      "default": 40
+    },
+    {
+      "type": "range",
+      "id": "grid_gap_mobile",
+      "min": 10,
+      "max": 60,
+      "step": 10,
+      "unit": "px",
+      "label": "Grid Gap (Mobile)",
+      "default": 30
+    },
+    {
+      "type": "header",
+      "content": "🎨 Colors"
+    },
+    {
+      "type": "color",
+      "id": "bg_color",
+      "label": "Background Color",
+      "default": "#ffffff"
+    },
+    {
+      "type": "color",
+      "id": "accent_color",
+      "label": "Accent Color",
+      "default": "#5B3A8C"
+    },
+    {
+      "type": "color",
+      "id": "title_color",
+      "label": "Title Color",
+      "default": "#000000"
+    },
+    {
+      "type": "color",
+      "id": "text_color",
+      "label": "Text Color",
+      "default": "#333333"
+    },
+    {
+      "type": "header",
+      "content": "🖼️ Image Gallery"
+    },
+    {
+      "type": "checkbox",
+      "id": "gallery_sticky",
+      "label": "Sticky Gallery",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "show_thumbnails",
+      "label": "Show Thumbnails",
+      "default": true
+    },
+    {
+      "type": "range",
+      "id": "thumbnail_limit",
+      "min": 2,
+      "max": 8,
+      "step": 1,
+      "label": "Max Thumbnails",
+      "default": 4
+    },
+    {
+      "type": "range",
+      "id": "thumbnail_columns",
+      "min": 2,
+      "max": 6,
+      "step": 1,
+      "label": "Thumbnail Columns",
+      "default": 4
+    },
+    {
+      "type": "range",
+      "id": "thumbnail_gap",
+      "min": 5,
+      "max": 20,
+      "step": 5,
+      "unit": "px",
+      "label": "Thumbnail Gap",
+      "default": 10
+    },
+    {
+      "type": "range",
+      "id": "image_border_radius",
+      "min": 0,
+      "max": 30,
+      "step": 2,
+      "unit": "px",
+      "label": "Image Border Radius",
+      "default": 16
+    },
+    {
+      "type": "range",
+      "id": "thumbnail_border_radius",
+      "min": 0,
+      "max": 20,
+      "step": 2,
+      "unit": "px",
+      "label": "Thumbnail Border Radius",
+      "default": 8
+    },
+    {
+      "type": "checkbox",
+      "id": "image_shadow",
+      "label": "Image Shadow",
+      "default": false
+    },
+    {
+      "type": "checkbox",
+      "id": "thumbnail_hover_lift",
+      "label": "Thumbnail Hover Lift",
+      "default": false
+    },
+    {
+      "type": "color",
+      "id": "thumbnail_border_color",
+      "label": "Thumbnail Border Color",
+      "default": "#e0e0e0"
+    },
+    {
+      "type": "text",
+      "id": "gallery_bg_gradient",
+      "label": "Gallery Background",
+      "default": "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+      "info": "CSS gradient or solid color. Examples: linear-gradient(135deg, #667eea 0%, #764ba2 100%) or #667eea"
+    },
+    {
+      "type": "header",
+      "content": "Gallery Arrows"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_arrows",
+      "label": "Show Navigation Arrows",
+      "default": true
+    },
+    {
+      "type": "select",
+      "id": "arrow_position",
+      "label": "Arrow Position",
+      "options": [
+        {
+          "value": "inside",
+          "label": "Inside Gallery"
+        },
+        {
+          "value": "outside",
+          "label": "Outside Gallery"
+        }
+      ],
+      "default": "inside"
+    },
+    {
+      "type": "range",
+      "id": "arrow_outside_offset",
+      "min": 0,
+      "max": 60,
+      "step": 5,
+      "unit": "px",
+      "label": "Outside Offset",
+      "default": 20,
+      "info": "Only applies when position is 'outside'"
+    },
+    {
+      "type": "range",
+      "id": "arrow_padding",
+      "min": 0,
+      "max": 40,
+      "step": 5,
+      "unit": "px",
+      "label": "Arrow Padding (Desktop)",
+      "default": 15
+    },
+    {
+      "type": "range",
+      "id": "arrow_padding_mobile",
+      "min": 0,
+      "max": 30,
+      "step": 5,
+      "unit": "px",
+      "label": "Arrow Padding (Mobile)",
+      "default": 10
+    },
+    {
+      "type": "range",
+      "id": "arrow_size",
+      "min": 30,
+      "max": 70,
+      "step": 5,
+      "unit": "px",
+      "label": "Arrow Size (Desktop)",
+      "default": 45
+    },
+    {
+      "type": "range",
+      "id": "arrow_size_mobile",
+      "min": 25,
+      "max": 50,
+      "step": 5,
+      "unit": "px",
+      "label": "Arrow Size (Mobile)",
+      "default": 35
+    },
+    {
+      "type": "range",
+      "id": "arrow_icon_size",
+      "min": 16,
+      "max": 40,
+      "step": 2,
+      "unit": "px",
+      "label": "Icon Size (Desktop)",
+      "default": 24
+    },
+    {
+      "type": "range",
+      "id": "arrow_icon_size_mobile",
+      "min": 14,
+      "max": 30,
+      "step": 2,
+      "unit": "px",
+      "label": "Icon Size (Mobile)",
+      "default": 18
+    },
+    {
+      "type": "range",
+      "id": "arrow_border_radius",
+      "min": 0,
+      "max": 50,
+      "step": 5,
+      "unit": "px",
+      "label": "Border Radius",
+      "default": 50,
+      "info": "50 = circle"
+    },
+    {
+      "type": "range",
+      "id": "arrow_border_width",
+      "min": 0,
+      "max": 5,
+      "step": 1,
+      "unit": "px",
+      "label": "Border Width",
+      "default": 0
+    },
+    {
+      "type": "color",
+      "id": "arrow_bg_color",
+      "label": "Background Color",
+      "default": "#ffffff"
+    },
+    {
+      "type": "color",
+      "id": "arrow_hover_bg_color",
+      "label": "Hover Background Color",
+      "default": "#f5f5f5"
+    },
+    {
+      "type": "color",
+      "id": "arrow_icon_color",
+      "label": "Icon Color",
+      "default": "#000000"
+    },
+    {
+      "type": "color",
+      "id": "arrow_hover_icon_color",
+      "label": "Hover Icon Color",
+      "default": "#000000"
+    },
+    {
+      "type": "color",
+      "id": "arrow_border_color",
+      "label": "Border Color",
+      "default": "#e0e0e0"
+    },
+    {
+      "type": "checkbox",
+      "id": "arrow_shadow",
+      "label": "Arrow Shadow",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "arrow_hover_scale",
+      "label": "Scale on Hover",
+      "default": true
+    },
+    {
+      "type": "header",
+      "content": "📝 Product Info"
+    },
+    {
+      "type": "range",
+      "id": "info_padding",
+      "min": 0,
+      "max": 60,
+      "step": 10,
+      "unit": "px",
+      "label": "Info Padding",
+      "default": 20
+    },
+    {
+      "type": "text",
+      "id": "product_title",
+      "label": "Product Title Override",
+      "info": "Leave blank to use product title"
+    },
+    {
+      "type": "text",
+      "id": "category_title",
+      "label": "Category Title (e.g., 'Energy Mix')",
+      "default": "Energy Mix",
+      "info": "The outlined/italic text that appears above the product name"
+    },
+    {
+      "type": "header",
+      "content": "🎯 Title Icon"
+    },
+    {
+      "type": "image_picker",
+      "id": "title_icon",
+      "label": "Title Icon",
+      "info": "Recommended: 60-80px square image. Leave blank to use default black energy icon."
+    },
+    {
+      "type": "range",
+      "id": "title_icon_size",
+      "min": 30,
+      "max": 120,
+      "step": 5,
+      "unit": "px",
+      "label": "Icon Size",
+      "default": 60
+    },
+    {
+      "type": "range",
+      "id": "category_title_size",
+      "min": 20,
+      "max": 100,
+      "step": 2,
+      "unit": "px",
+      "label": "Category Title Size (Energy Mix)",
+      "default": 70
+    },
+    {
+      "type": "range",
+      "id": "title_font_size",
+      "min": 20,
+      "max": 100,
+      "step": 5,
+      "unit": "px",
+      "label": "Title Font Size (Desktop)",
+      "default": 70
+    },
+    {
+      "type": "range",
+      "id": "title_font_size_mobile",
+      "min": 18,
+      "max": 40,
+      "step": 2,
+      "unit": "px",
+      "label": "Title Font Size (Mobile)",
+      "default": 32
+    },
+    {
+      "type": "range",
+      "id": "title_font_weight",
+      "min": 300,
+      "max": 900,
+      "step": 100,
+      "label": "Title Font Weight",
+      "default": 700
+    },
+    {
+      "type": "range",
+      "id": "title_line_height",
+      "min": 1,
+      "max": 2,
+      "step": 0.1,
+      "label": "Title Line Height",
+      "default": 1.2
+    },
+    {
+      "type": "range",
+      "id": "title_margin_bottom",
+      "min": 0,
+      "max": 40,
+      "step": 5,
+      "unit": "px",
+      "label": "Title Margin Bottom",
+      "default": 10
+    },
+    {
+      "type": "textarea",
+      "id": "product_tagline",
+      "label": "Product Tagline"
+    },
+    {
+      "type": "range",
+      "id": "tagline_font_size",
+      "min": 12,
+      "max": 24,
+      "step": 1,
+      "unit": "px",
+      "label": "Tagline Font Size",
+      "default": 18
+    },
+    {
+      "type": "color",
+      "id": "tagline_color",
+      "label": "Tagline Color",
+      "default": "#666666"
+    },
+    {
+      "type": "range",
+      "id": "tagline_margin_bottom",
+      "min": 0,
+      "max": 40,
+      "step": 5,
+      "unit": "px",
+      "label": "Tagline Margin Bottom",
+      "default": 20
+    },
+    {
+      "type": "header",
+      "content": "🏆 Guarantee Badge"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_guarantee",
+      "label": "Show Guarantee",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "show_guarantee_icon",
+      "label": "Show Guarantee Icon",
+      "default": true
+    },
+    {
+      "type": "text",
+      "id": "guarantee_text",
+      "label": "Guarantee Text",
+      "default": "Sleep better or your money back"
+    },
+    {
+      "type": "range",
+      "id": "guarantee_font_size",
+      "min": 10,
+      "max": 20,
+      "step": 1,
+      "unit": "px",
+      "label": "Guarantee Font Size",
+      "default": 14
+    },
+    {
+      "type": "range",
+      "id": "guarantee_padding",
+      "min": 5,
+      "max": 20,
+      "step": 1,
+      "unit": "px",
+      "label": "Guarantee Padding",
+      "default": 10
+    },
+    {
+      "type": "range",
+      "id": "guarantee_border_radius",
+      "min": 0,
+      "max": 50,
+      "step": 5,
+      "unit": "px",
+      "label": "Guarantee Border Radius",
+      "default": 50
+    },
+    {
+      "type": "color",
+      "id": "guarantee_bg_color",
+      "label": "Guarantee Background",
+      "default": "#5B3A8C"
+    },
+    {
+      "type": "color",
+      "id": "guarantee_text_color",
+      "label": "Guarantee Text Color",
+      "default": "#ffffff"
+    },
+    {
+      "type": "header",
+      "content": "⭐ Rating"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_rating",
+      "label": "Show Rating",
+      "default": true
+    },
+    {
+      "type": "text",
+      "id": "rating_text",
+      "label": "Rating Text",
+      "default": "Helped 30K+ customers"
+    },
+    {
+      "type": "range",
+      "id": "rating_font_size",
+      "min": 12,
+      "max": 24,
+      "step": 1,
+      "unit": "px",
+      "label": "Rating Font Size",
+      "default": 16
+    },
+    {
+      "type": "color",
+      "id": "star_color",
+      "label": "Star Color",
+      "default": "#ffc107"
+    },
+    {
+      "type": "header",
+      "content": "📦 Bundle Selector"
+    },
+    {
+      "type": "text",
+      "id": "bundle_selector_heading",
+      "label": "Selector Heading",
+      "default": "Choose Your Bundle Size"
+    },
+    {
+      "type": "textarea",
+      "id": "bundle_short_description",
+      "label": "Short Description",
+      "info": "Appears below bundle selector (e.g., 'Select your preferred quantity')",
+      "placeholder": "Add a brief description or note here"
+    },
+    {
+      "type": "range",
+      "id": "bundle_description_font_size",
+      "min": 12,
+      "max": 20,
+      "step": 1,
+      "unit": "px",
+      "label": "Description Font Size",
+      "default": 14
+    },
+    {
+      "type": "color",
+      "id": "bundle_description_color",
+      "label": "Description Color",
+      "default": "#666666"
+    },
+    {
+      "type": "range",
+      "id": "bundle_description_margin",
+      "min": 0,
+      "max": 40,
+      "step": 5,
+      "unit": "px",
+      "label": "Description Margin",
+      "default": 15,
+      "info": "Spacing around the description"
+    },
+    {
+      "type": "range",
+      "id": "bundle_label_size",
+      "min": 14,
+      "max": 28,
+      "step": 1,
+      "unit": "px",
+      "label": "Label Font Size",
+      "default": 18
+    },
+    {
+      "type": "range",
+      "id": "bundle_label_weight",
+      "min": 400,
+      "max": 900,
+      "step": 100,
+      "label": "Label Font Weight",
+      "default": 600
+    },
+    {
+      "type": "color",
+      "id": "bundle_label_color",
+      "label": "Label Color",
+      "default": "#000000"
+    },
+    {
+      "type": "range",
+      "id": "bundle_label_margin",
+      "min": 5,
+      "max": 60,
+      "step": 5,
+      "unit": "px",
+      "label": "Label Margin Bottom",
+      "default": 15
+    },
+    {
+      "type": "range",
+      "id": "bundle_section_margin",
+      "min": 10,
+      "max": 60,
+      "step": 5,
+      "unit": "px",
+      "label": "Section Margin",
+      "default": 30
+    },
+    {
+      "type": "range",
+      "id": "bundle_card_gap",
+      "min": 5,
+      "max": 30,
+      "step": 1,
+      "unit": "px",
+      "label": "Card Gap (Desktop)",
+      "default": 12
+    },
+    {
+      "type": "range",
+      "id": "bundle_card_gap_mobile",
+      "min": 2,
+      "max": 15,
+      "step": 1,
+      "unit": "px",
+      "label": "Card Gap (Mobile)",
+      "default": 3
+    },
+    {
+      "type": "range",
+      "id": "bundle_mobile_columns",
+      "min": 1,
+      "max": 3,
+      "step": 1,
+      "label": "Mobile Columns",
+      "default": 3
+    },
+    {
+      "type": "range",
+      "id": "bundle_card_padding",
+      "min": 10,
+      "max": 40,
+      "step": 2,
+      "unit": "px",
+      "label": "Card Padding",
+      "default": 20
+    },
+    {
+      "type": "range",
+      "id": "bundle_card_radius",
+      "min": 0,
+      "max": 30,
+      "step": 2,
+      "unit": "px",
+      "label": "Card Border Radius",
+      "default": 12
+    },
+    {
+      "type": "range",
+      "id": "bundle_card_border_width",
+      "min": 1,
+      "max": 5,
+      "step": 1,
+      "unit": "px",
+      "label": "Card Border Width",
+      "default": 2
+    },
+    {
+      "type": "range",
+      "id": "bundle_selected_border_width",
+      "min": 2,
+      "max": 6,
+      "step": 1,
+      "unit": "px",
+      "label": "Selected Card Border Width",
+      "default": 3
+    },
+    {
+      "type": "color",
+      "id": "bundle_card_bg",
+      "label": "Card Background",
+      "default": "#ffffff"
+    },
+    {
+      "type": "color",
+      "id": "bundle_card_border_color",
+      "label": "Card Border Color",
+      "default": "#e0e0e0"
+    },
+    {
+      "type": "text",
+      "id": "bundle_selected_bg_opacity",
+      "label": "Selected Card BG Opacity",
+      "default": "15",
+      "info": "15 = 15% opacity"
+    },
+    {
+      "type": "checkbox",
+      "id": "bundle_card_shadow",
+      "label": "Card Shadow",
+      "default": false
+    },
+    {
+      "type": "checkbox",
+      "id": "bundle_hover_lift",
+      "label": "Hover Lift Effect",
+      "default": true
+    },
+    {
+      "type": "range",
+      "id": "bundle_hover_distance",
+      "min": 2,
+      "max": 10,
+      "step": 1,
+      "unit": "px",
+      "label": "Hover Lift Distance",
+      "default": 4
+    },
+    {
+      "type": "checkbox",
+      "id": "bundle_hover_shadow",
+      "label": "Hover Shadow",
+      "default": true
+    },
+    {
+      "type": "range",
+      "id": "bundle_transition_speed",
+      "min": 0.1,
+      "max": 1,
+      "step": 0.1,
+      "unit": "s",
+      "label": "Transition Speed",
+      "default": 0.3
+    },
+    {
+      "type": "header",
+      "content": "🏷️ Bundle Badges"
+    },
+    {
+      "type": "range",
+      "id": "badge_font_size",
+      "min": 8,
+      "max": 16,
+      "step": 1,
+      "unit": "px",
+      "label": "Badge Font Size",
+      "default": 11
+    },
+    {
+      "type": "range",
+      "id": "badge_padding",
+      "min": 2,
+      "max": 10,
+      "step": 1,
+      "unit": "px",
+      "label": "Badge Padding",
+      "default": 4
+    },
+    {
+      "type": "range",
+      "id": "badge_radius",
+      "min": 0,
+      "max": 30,
+      "step": 2,
+      "unit": "px",
+      "label": "Badge Border Radius",
+      "default": 20
+    },
+    {
+      "type": "range",
+      "id": "badge_offset",
+      "min": 5,
+      "max": 20,
+      "step": 1,
+      "unit": "px",
+      "label": "Badge Bottom Offset",
+      "default": 10,
+      "info": "Distance from bottom of card"
+    },
+    {
+      "type": "color",
+      "id": "badge_trial_color",
+      "label": "Trial Badge Color",
+      "default": "#6c757d"
+    },
+    {
+      "type": "color",
+      "id": "badge_best_color",
+      "label": "Best Value Badge Color",
+      "default": "#28a745"
+    },
+    {
+      "type": "header",
+      "content": "🔢 Serving Display"
+    },
+    {
+      "type": "range",
+      "id": "serving_font_size",
+      "min": 16,
+      "max": 36,
+      "step": 2,
+      "unit": "px",
+      "label": "Serving Font Size (Desktop)",
+      "default": 24
+    },
+    {
+      "type": "range",
+      "id": "serving_font_size_mobile",
+      "min": 12,
+      "max": 24,
+      "step": 1,
+      "unit": "px",
+      "label": "Serving Font Size (Mobile)",
+      "default": 16
+    },
+    {
+      "type": "range",
+      "id": "serving_font_weight",
+      "min": 400,
+      "max": 900,
+      "step": 100,
+      "label": "Serving Font Weight",
+      "default": 700
+    },
+    {
+      "type": "color",
+      "id": "serving_color",
+      "label": "Serving Color",
+      "default": "#000000"
+    },
+    {
+      "type": "range",
+      "id": "per_serving_size",
+      "min": 10,
+      "max": 20,
+      "step": 1,
+      "unit": "px",
+      "label": "Per-Serving Font Size (Desktop)",
+      "default": 16
+    },
+    {
+      "type": "range",
+      "id": "per_serving_size_mobile",
+      "min": 8,
+      "max": 16,
+      "step": 1,
+      "unit": "px",
+      "label": "Per-Serving Font Size (Mobile)",
+      "default": 11
+    },
+    {
+      "type": "range",
+      "id": "per_serving_weight",
+      "min": 400,
+      "max": 700,
+      "step": 100,
+      "label": "Per-Serving Font Weight",
+      "default": 600
+    },
+    {
+      "type": "header",
+      "content": "Bundle 1 - Trial (15 Servings)"
+    },
+    {
+      "type": "product",
+      "id": "bundle_1_handle",
+      "label": "Product"
+    },
+    {
+      "type": "range",
+      "id": "bundle_1_servings",
+      "min": 1,
+      "max": 100,
+      "step": 1,
+      "label": "Servings",
+      "default": 15
+    },
+    {
+      "type": "text",
+      "id": "bundle_1_badge",
+      "label": "Badge",
+      "default": "TRIAL"
+    },
+    {
+      "type": "image_picker",
+      "id": "bundle_1_thumbnail",
+      "label": "Product Thumbnail (Optional)",
+      "info": "Small product image shown at top of bundle card. Recommended: 160x160px"
+    },
+    {
+      "type": "text",
+      "id": "bundle_1_onetime_price",
+      "label": "One-Time Price/Serving",
+      "default": "1.99",
+      "info": "Enter as decimal: 1.99"
+    },
+    {
+      "type": "text",
+      "id": "bundle_1_subscribe_price",
+      "label": "Subscribe Price/Serving",
+      "default": "1.69",
+      "info": "Enter as decimal: 1.69"
+    },
+    {
+      "type": "header",
+      "content": "Bundle 2 - Most Popular (30 Servings)"
+    },
+    {
+      "type": "product",
+      "id": "bundle_2_handle",
+      "label": "Product"
+    },
+    {
+      "type": "range",
+      "id": "bundle_2_servings",
+      "min": 1,
+      "max": 100,
+      "step": 1,
+      "label": "Servings",
+      "default": 30
+    },
+    {
+      "type": "text",
+      "id": "bundle_2_badge",
+      "label": "Badge",
+      "default": "MOST ORDERED"
+    },
+    {
+      "type": "image_picker",
+      "id": "bundle_2_thumbnail",
+      "label": "Product Thumbnail (Optional)",
+      "info": "Small product image shown at top of bundle card. Recommended: 160x160px"
+    },
+    {
+      "type": "text",
+      "id": "bundle_2_onetime_price",
+      "label": "One-Time Price/Serving",
+      "default": "1.80",
+      "info": "Enter as decimal: 1.80"
+    },
+    {
+      "type": "text",
+      "id": "bundle_2_subscribe_price",
+      "label": "Subscribe Price/Serving",
+      "default": "1.49",
+      "info": "Enter as decimal: 1.49"
+    },
+    {
+      "type": "text",
+      "id": "bundle_2_original_price",
+      "label": "Original Price (for strikethrough)",
+      "default": "59.98",
+      "info": "Total original price before discount"
+    },
+    {
+      "type": "text",
+      "id": "bundle_2_onetime_discount",
+      "label": "One-Time Discount Badge",
+      "default": "10% OFF",
+      "info": "e.g., '10% OFF'"
+    },
+    {
+      "type": "text",
+      "id": "bundle_2_subscribe_discount",
+      "label": "Subscribe Discount Badge",
+      "default": "25% OFF",
+      "info": "e.g., '25% OFF'"
+    },
+    {
+      "type": "header",
+      "content": "Bundle 3 - Best Value (45 Servings)"
+    },
+    {
+      "type": "product",
+      "id": "bundle_3_handle",
+      "label": "Product"
+    },
+    {
+      "type": "range",
+      "id": "bundle_3_servings",
+      "min": 1,
+      "max": 100,
+      "step": 1,
+      "label": "Servings",
+      "default": 45
+    },
+    {
+      "type": "text",
+      "id": "bundle_3_badge",
+      "label": "Badge",
+      "default": "BEST VALUE"
+    },
+    {
+      "type": "image_picker",
+      "id": "bundle_3_thumbnail",
+      "label": "Product Thumbnail (Optional)",
+      "info": "Small product image shown at top of bundle card. Recommended: 160x160px"
+    },
+    {
+      "type": "text",
+      "id": "bundle_3_onetime_price",
+      "label": "One-Time Price/Serving",
+      "default": "1.60",
+      "info": "Enter as decimal: 1.60"
+    },
+    {
+      "type": "text",
+      "id": "bundle_3_subscribe_price",
+      "label": "Subscribe Price/Serving",
+      "default": "1.39",
+      "info": "Enter as decimal: 1.39"
+    },
+    {
+      "type": "text",
+      "id": "bundle_3_original_price",
+      "label": "Original Price (for strikethrough)",
+      "default": "89.97",
+      "info": "Total original price before discount"
+    },
+    {
+      "type": "text",
+      "id": "bundle_3_onetime_discount",
+      "label": "One-Time Discount Badge",
+      "default": "20% OFF",
+      "info": "e.g., '20% OFF'"
+    },
+    {
+      "type": "text",
+      "id": "bundle_3_subscribe_discount",
+      "label": "Subscribe Discount Badge",
+      "default": "30% OFF",
+      "info": "e.g., '30% OFF'"
+    },
+    {
+      "type": "header",
+      "content": "💳 Seal Subscription Widget"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_seal_widget",
+      "label": "Show Seal Widget",
+      "default": true
+    },
+    {
+      "type": "text",
+      "id": "seal_heading_text",
+      "label": "Seal Heading",
+      "default": "Purchase Options"
+    },
+    {
+      "type": "range",
+      "id": "seal_heading_size",
+      "min": 14,
+      "max": 28,
+      "step": 1,
+      "unit": "px",
+      "label": "Heading Font Size",
+      "default": 19
+    },
+    {
+      "type": "range",
+      "id": "seal_heading_weight",
+      "min": 400,
+      "max": 900,
+      "step": 100,
+      "label": "Heading Font Weight",
+      "default": 600
+    },
+    {
+      "type": "color",
+      "id": "seal_heading_color",
+      "label": "Heading Color",
+      "default": "#000000"
+    },
+    {
+      "type": "range",
+      "id": "seal_padding",
+      "min": 10,
+      "max": 40,
+      "step": 5,
+      "unit": "px",
+      "label": "Widget Padding",
+      "default": 20
+    },
+    {
+      "type": "range",
+      "id": "seal_border_radius",
+      "min": 0,
+      "max": 30,
+      "step": 2,
+      "unit": "px",
+      "label": "Widget Border Radius",
+      "default": 12
+    },
+    {
+      "type": "color",
+      "id": "seal_bg_color",
+      "label": "Widget Background",
+      "default": "#f9f9f9"
+    },
+    {
+      "type": "checkbox",
+      "id": "seal_border",
+      "label": "Show Widget Border",
+      "default": false
+    },
+    {
+      "type": "color",
+      "id": "seal_border_color",
+      "label": "Widget Border Color",
+      "default": "#e0e0e0"
+    },
+    {
+      "type": "header",
+      "content": "🔢 Quantity Selector"
+    },
+    {
+      "type": "header",
+      "content": "💊 Unified Pill Design"
+    },
+    {
+      "type": "paragraph",
+      "content": "The quantity selector and add-to-cart button are combined in one pill (15% quantity / 85% button). On mobile, the label is hidden to save space."
+    },
+    {
+      "type": "range",
+      "id": "pill_border_width",
+      "min": 0,
+      "max": 10,
+      "step": 1,
+      "unit": "px",
+      "label": "Pill Border Width",
+      "default": 2
+    },
+    {
+      "type": "color",
+      "id": "pill_border_color",
+      "label": "Pill Border Color",
+      "default": "#000000"
+    },
+    {
+      "type": "range",
+      "id": "pill_border_radius",
+      "min": 0,
+      "max": 100,
+      "step": 5,
+      "unit": "px",
+      "label": "Pill Border Radius",
+      "default": 50,
+      "info": "Controls the roundness of the entire pill"
+    },
+    {
+      "type": "color",
+      "id": "pill_bg_color",
+      "label": "Pill Background",
+      "default": "#ffffff",
+      "info": "Overall pill background"
+    },
+    {
+      "type": "checkbox",
+      "id": "pill_shadow_enabled",
+      "label": "Enable Pill Shadow",
+      "default": true
+    },
+    {
+      "type": "text",
+      "id": "pill_shadow",
+      "label": "Pill Shadow (CSS)",
+      "default": "0 2px 8px rgba(0,0,0,0.08)",
+      "info": "e.g., 0 2px 8px rgba(0,0,0,0.1)"
+    },
+    {
+      "type": "header",
+      "content": "Quantity Section (Left 15%)"
+    },
+    {
+      "type": "color",
+      "id": "quantity_bg_color",
+      "label": "Quantity Background",
+      "default": "#ffffff"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_quantity",
+      "label": "Show Quantity Selector",
+      "default": true
+    },
+    {
+      "type": "text",
+      "id": "quantity_label",
+      "label": "Quantity Label",
+      "default": "QTY",
+      "info": "Change this to 'QTY' if it still shows 'Quantity'"
+    },
+    {
+      "type": "range",
+      "id": "quantity_max",
+      "min": 5,
+      "max": 20,
+      "step": 1,
+      "label": "Max Quantity",
+      "default": 10
+    },
+    {
+      "type": "range",
+      "id": "quantity_label_size",
+      "min": 10,
+      "max": 20,
+      "step": 1,
+      "unit": "px",
+      "label": "Label Font Size",
+      "default": 13
+    },
+    {
+      "type": "range",
+      "id": "quantity_label_weight",
+      "min": 400,
+      "max": 900,
+      "step": 100,
+      "label": "Label Font Weight",
+      "default": 600
+    },
+    {
+      "type": "color",
+      "id": "quantity_label_color",
+      "label": "Label Color",
+      "default": "#000000"
+    },
+    {
+      "type": "range",
+      "id": "quantity_btn_size",
+      "min": 14,
+      "max": 24,
+      "step": 1,
+      "unit": "px",
+      "label": "Button Size (< >)",
+      "default": 18
+    },
+    {
+      "type": "range",
+      "id": "quantity_btn_weight",
+      "min": 400,
+      "max": 900,
+      "step": 100,
+      "label": "Button Font Weight",
+      "default": 600
+    },
+    {
+      "type": "color",
+      "id": "quantity_btn_color",
+      "label": "Button Color",
+      "default": "#333333"
+    },
+    {
+      "type": "color",
+      "id": "quantity_btn_hover_bg",
+      "label": "Button Hover Background",
+      "default": "#f5f5f5"
+    },
+    {
+      "type": "color",
+      "id": "quantity_btn_hover_color",
+      "label": "Button Hover Color",
+      "default": "#000000"
+    },
+    {
+      "type": "color",
+      "id": "quantity_input_color",
+      "label": "Input Text Color",
+      "default": "#000000"
+    },
+    {
+      "type": "range",
+      "id": "quantity_font_weight",
+      "min": 400,
+      "max": 900,
+      "step": 100,
+      "label": "Input Font Weight",
+      "default": 600
+    },
+    {
+      "type": "range",
+      "id": "quantity_font_size",
+      "min": 12,
+      "max": 20,
+      "step": 1,
+      "unit": "px",
+      "label": "Input Font Size",
+      "default": 16
+    },
+    {
+      "type": "range",
+      "id": "quantity_input_width",
+      "min": 50,
+      "max": 120,
+      "step": 5,
+      "unit": "px",
+      "label": "Input Width",
+      "default": 80
+    },
+    {
+      "type": "range",
+      "id": "quantity_input_padding",
+      "min": 5,
+      "max": 20,
+      "step": 1,
+      "unit": "px",
+      "label": "Input Padding",
+      "default": 10
+    },
+    {
+      "type": "range",
+      "id": "quantity_border_radius",
+      "min": 0,
+      "max": 20,
+      "step": 2,
+      "unit": "px",
+      "label": "Input Border Radius",
+      "default": 8
+    },
+    {
+      "type": "color",
+      "id": "quantity_border_color",
+      "label": "Input Border Color",
+      "default": "#e0e0e0"
+    },
+    {
+      "type": "range",
+      "id": "quantity_margin_bottom",
+      "min": 10,
+      "max": 40,
+      "step": 5,
+      "unit": "px",
+      "label": "Margin Bottom",
+      "default": 20
+    },
+    {
+      "type": "header",
+      "content": "🛒 Add to Cart Button"
+    },
+    {
+      "type": "text",
+      "id": "cta_text",
+      "label": "Button Text",
+      "default": "Add to Cart"
+    },
+    {
+      "type": "range",
+      "id": "button_font_size",
+      "min": 14,
+      "max": 28,
+      "step": 1,
+      "unit": "px",
+      "label": "Button Font Size",
+      "default": 19
+    },
+    {
+      "type": "range",
+      "id": "button_font_weight",
+      "min": 400,
+      "max": 900,
+      "step": 100,
+      "label": "Button Font Weight",
+      "default": 700
+    },
+    {
+      "type": "range",
+      "id": "button_padding_vertical",
+      "min": 10,
+      "max": 30,
+      "step": 2,
+      "unit": "px",
+      "label": "Button Padding (Vertical)",
+      "default": 18
+    },
+    {
+      "type": "range",
+      "id": "button_padding_horizontal",
+      "min": 20,
+      "max": 100,
+      "step": 5,
+      "unit": "px",
+      "label": "Button Padding (Horizontal)",
+      "default": 40
+    },
+    {
+      "type": "paragraph",
+      "content": "Note: Border radius is controlled by 'Pill Border Radius' setting above"
+    },
+    {
+      "type": "color",
+      "id": "button_bg_color",
+      "label": "Button Background",
+      "default": "#5B3A8C"
+    },
+    {
+      "type": "color",
+      "id": "button_hover_bg_color",
+      "label": "Button Hover Background",
+      "default": "#4a2e71"
+    },
+    {
+      "type": "color",
+      "id": "button_text_color",
+      "label": "Button Text Color",
+      "default": "#ffffff"
+    },
+    {
+      "type": "select",
+      "id": "button_text_align",
+      "label": "Button Text Alignment",
+      "options": [
+        {
+          "value": "left",
+          "label": "Left"
+        },
+        {
+          "value": "center",
+          "label": "Center"
+        },
+        {
+          "value": "right",
+          "label": "Right"
+        }
+      ],
+      "default": "center"
+    },
+    {
+      "type": "select",
+      "id": "button_text_justify",
+      "label": "Button Text Position (Flexbox)",
+      "options": [
+        {
+          "value": "flex-start",
+          "label": "Left"
+        },
+        {
+          "value": "center",
+          "label": "Center"
+        },
+        {
+          "value": "flex-end",
+          "label": "Right"
+        }
+      ],
+      "default": "center",
+      "info": "Controls where text sits within the button area"
+    },
+    {
+      "type": "checkbox",
+      "id": "button_border",
+      "label": "Show Button Border",
+      "default": false
+    },
+    {
+      "type": "range",
+      "id": "button_border_width",
+      "min": 1,
+      "max": 5,
+      "step": 1,
+      "unit": "px",
+      "label": "Button Border Width",
+      "default": 2
+    },
+    {
+      "type": "color",
+      "id": "button_border_color",
+      "label": "Button Border Color",
+      "default": "#5B3A8C"
+    },
+    {
+      "type": "checkbox",
+      "id": "button_shadow",
+      "label": "Button Shadow",
+      "default": false
+    },
+    {
+      "type": "checkbox",
+      "id": "button_hover_lift",
+      "label": "Button Hover Lift",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "button_hover_shadow",
+      "label": "Button Hover Shadow",
+      "default": false
+    },
+    {
+      "type": "range",
+      "id": "button_transition_speed",
+      "min": 0.1,
+      "max": 1,
+      "step": 0.1,
+      "unit": "s",
+      "label": "Button Transition Speed",
+      "default": 0.3
+    },
+    {
+      "type": "header",
+      "content": "✅ Trust Badges"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_trust_badges",
+      "label": "Show Trust Badges",
+      "default": true
+    },
+    {
+      "type": "range",
+      "id": "trust_badge_columns",
+      "min": 2,
+      "max": 6,
+      "step": 1,
+      "label": "Columns (Desktop)",
+      "default": 6
+    },
+    {
+      "type": "range",
+      "id": "trust_badge_mobile_columns",
+      "min": 1,
+      "max": 3,
+      "step": 1,
+      "label": "Columns (Mobile)",
+      "default": 2
+    },
+    {
+      "type": "range",
+      "id": "trust_badge_gap",
+      "min": 5,
+      "max": 40,
+      "step": 5,
+      "unit": "px",
+      "label": "Badge Gap",
+      "default": 20
+    },
+    {
+      "type": "range",
+      "id": "trust_badge_margin_top",
+      "min": 10,
+      "max": 60,
+      "step": 5,
+      "unit": "px",
+      "label": "Margin Top",
+      "default": 30
+    },
+    {
+      "type": "range",
+      "id": "trust_badge_padding_top",
+      "min": 10,
+      "max": 60,
+      "step": 5,
+      "unit": "px",
+      "label": "Padding Top",
+      "default": 30
+    },
+    {
+      "type": "checkbox",
+      "id": "trust_badge_border",
+      "label": "Show Top Border",
+      "default": true
+    },
+    {
+      "type": "color",
+      "id": "trust_badge_border_color",
+      "label": "Border Color",
+      "default": "#e0e0e0"
+    },
+    {
+      "type": "range",
+      "id": "trust_icon_size",
+      "min": 24,
+      "max": 80,
+      "step": 4,
+      "unit": "px",
+      "label": "Icon Size",
+      "default": 48
+    },
+    {
+      "type": "range",
+      "id": "trust_title_size",
+      "min": 12,
+      "max": 20,
+      "step": 1,
+      "unit": "px",
+      "label": "Title Font Size",
+      "default": 15
+    },
+    {
+      "type": "range",
+      "id": "trust_title_weight",
+      "min": 400,
+      "max": 900,
+      "step": 100,
+      "label": "Title Font Weight",
+      "default": 600
+    },
+    {
+      "type": "color",
+      "id": "trust_title_color",
+      "label": "Title Color",
+      "default": "#000000"
+    },
+    {
+      "type": "range",
+      "id": "trust_text_size",
+      "min": 10,
+      "max": 18,
+      "step": 1,
+      "unit": "px",
+      "label": "Text Font Size",
+      "default": 14
+    },
+    {
+      "type": "color",
+      "id": "trust_text_color",
+      "label": "Text Color",
+      "default": "#666666"
+    },
+    {
+      "type": "header",
+      "content": "📋 Collapsible Accordions"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_accordions",
+      "label": "Show Accordions",
+      "default": true
+    },
+    {
+      "type": "range",
+      "id": "accordion_margin_top",
+      "min": 20,
+      "max": 80,
+      "step": 5,
+      "unit": "px",
+      "label": "Margin Top",
+      "default": 40
+    },
+    {
+      "type": "checkbox",
+      "id": "accordion_border_top",
+      "label": "Show Top Border",
+      "default": true
+    },
+    {
+      "type": "color",
+      "id": "accordion_border_color",
+      "label": "Border Color",
+      "default": "#e0e0e0"
+    },
+    {
+      "type": "range",
+      "id": "accordion_header_padding",
+      "min": 10,
+      "max": 40,
+      "step": 2,
+      "unit": "px",
+      "label": "Header Padding",
+      "default": 20
+    },
+    {
+      "type": "range",
+      "id": "accordion_title_size",
+      "min": 14,
+      "max": 28,
+      "step": 1,
+      "unit": "px",
+      "label": "Title Font Size",
+      "default": 18
+    },
+    {
+      "type": "range",
+      "id": "accordion_title_weight",
+      "min": 400,
+      "max": 900,
+      "step": 100,
+      "label": "Title Font Weight",
+      "default": 600
+    },
+    {
+      "type": "color",
+      "id": "accordion_title_color",
+      "label": "Title Color",
+      "default": "#000000"
+    },
+    {
+      "type": "range",
+      "id": "accordion_icon_size",
+      "min": 18,
+      "max": 36,
+      "step": 2,
+      "unit": "px",
+      "label": "Icon Size",
+      "default": 24
+    },
+    {
+      "type": "color",
+      "id": "accordion_icon_color",
+      "label": "Icon Color",
+      "default": "#000000"
+    },
+    {
+      "type": "range",
+      "id": "accordion_content_padding",
+      "min": 10,
+      "max": 40,
+      "step": 2,
+      "unit": "px",
+      "label": "Content Padding Bottom",
+      "default": 20
+    },
+    {
+      "type": "range",
+      "id": "accordion_content_size",
+      "min": 12,
+      "max": 20,
+      "step": 1,
+      "unit": "px",
+      "label": "Content Font Size",
+      "default": 15
+    },
+    {
+      "type": "range",
+      "id": "accordion_content_line_height",
+      "min": 1.2,
+      "max": 2,
+      "step": 0.1,
+      "label": "Content Line Height",
+      "default": 1.6
+    },
+    {
+      "type": "color",
+      "id": "accordion_content_color",
+      "label": "Content Color",
+      "default": "#333333"
+    },
+    {
+      "type": "header",
+      "content": "📄 Product Description"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_description",
+      "label": "Show Description",
+      "default": true
+    },
+    {
+      "type": "range",
+      "id": "description_font_size",
+      "min": 12,
+      "max": 20,
+      "step": 1,
+      "unit": "px",
+      "label": "Font Size",
+      "default": 15
+    },
+    {
+      "type": "range",
+      "id": "description_line_height",
+      "min": 1.2,
+      "max": 2,
+      "step": 0.1,
+      "label": "Line Height",
+      "default": 1.6
+    },
+    {
+      "type": "color",
+      "id": "description_color",
+      "label": "Text Color",
+      "default": "#333333"
+    },
+    {
+      "type": "range",
+      "id": "description_margin",
+      "min": 10,
+      "max": 60,
+      "step": 5,
+      "unit": "px",
+      "label": "Margin",
+      "default": 20
+    },
+    {
+      "type": "header",
+      "content": "📱 Sticky Mobile Button"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_sticky_mobile_cta",
+      "label": "Show Sticky Mobile CTA",
+      "default": true,
+      "info": "Shows floating button at bottom when add-to-cart is out of view"
+    },
+    {
+      "type": "text",
+      "id": "sticky_button_text",
+      "label": "Button Text",
+      "default": "Choose Your Bundle"
+    },
+    {
+      "type": "range",
+      "id": "sticky_button_font_size",
+      "min": 14,
+      "max": 22,
+      "step": 1,
+      "unit": "px",
+      "label": "Button Font Size",
+      "default": 16
+    },
+    {
+      "type": "range",
+      "id": "sticky_button_padding",
+      "min": 10,
+      "max": 30,
+      "step": 2,
+      "unit": "px",
+      "label": "Container Padding",
+      "default": 16
+    },
+    {
+      "type": "range",
+      "id": "sticky_button_padding_vertical",
+      "min": 12,
+      "max": 25,
+      "step": 1,
+      "unit": "px",
+      "label": "Button Padding",
+      "default": 16
+    },
+    {
+      "type": "range",
+      "id": "sticky_button_radius",
+      "min": 0,
+      "max": 50,
+      "step": 5,
+      "unit": "px",
+      "label": "Button Border Radius",
+      "default": 50
+    },
+    {
+      "type": "color",
+      "id": "sticky_button_bg",
+      "label": "Container Background",
+      "default": "#ffffffee",
+      "info": "Use rgba or hex with transparency"
+    }
+  ],
+  "blocks": [
+    {
+      "type": "trust_badge",
+      "name": "Trust Badge",
+      "settings": [
+        {
+          "type": "image_picker",
+          "id": "icon",
+          "label": "Icon"
+        },
+        {
+          "type": "text",
+          "id": "title",
+          "label": "Title"
+        },
+        {
+          "type": "text",
+          "id": "description",
+          "label": "Description"
+        }
+      ]
+    },
+    {
+      "type": "accordion",
+      "name": "Accordion",
+      "settings": [
+        {
+          "type": "text",
+          "id": "title",
+          "label": "Title",
+          "default": "Accordion Title"
+        },
+        {
+          "type": "richtext",
+          "id": "content",
+          "label": "Content",
+          "default": "<p>Add your content here.</p>"
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "Bundle Product (EP)",
+      "blocks": [
+        {
+          "type": "trust_badge",
+          "settings": {
+            "title": "Free Shipping",
+            "description": "For Subscribers"
+          }
+        },
+        {
+          "type": "trust_badge",
+          "settings": {
+            "title": "90-Day Money",
+            "description": "Back Guarantee"
+          }
+        },
+        {
+          "type": "trust_badge",
+          "settings": {
+            "title": "Helped 30K+",
+            "description": "customers"
+          }
+        },
+        {
+          "type": "accordion",
+          "settings": {
+            "title": "Product description",
+            "content": "<p>Add your product description here.</p>"
+          }
+        },
+        {
+          "type": "accordion",
+          "settings": {
+            "title": "How to use",
+            "content": "<p>Add usage instructions here.</p>"
+          }
+        },
+        {
+          "type": "accordion",
+          "settings": {
+            "title": "Benefits",
+            "content": "<p>List the benefits here.</p>"
+          }
+        },
+        {
+          "type": "accordion",
+          "settings": {
+            "title": "Ingredients",
+            "content": "<p>List ingredients here.</p>"
+          }
+        },
+        {
+          "type": "accordion",
+          "settings": {
+            "title": "FAQ",
+            "content": "<p>Add frequently asked questions here.</p>"
+          }
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}

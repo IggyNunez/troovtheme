@@ -1,0 +1,56 @@
+{% paginate search.results by 12 %}
+
+<section>
+ <div class="container">
+   
+   <div class="content">
+     <h1 class="title">
+       {% if search.results_count == 0 or search.performed == false %}
+       {{ 'general.search.title' | t }}
+       {% else %}
+       {{ 'general.search.results_with_count' | t: terms: search.terms, count: search.results_count }}
+       {% endif %}
+     </h1>
+     
+     <form action="/search" method="get" role="search" class="search-form">
+       <div class="input-group mb-3">
+         <input id="SearchInput" type="search" name="q" class="form-control form-control-lg" placeholder="{{ 'general.search.placeholder' | t }}" aria-label="{{ 'general.search.placeholder' | t }}" autofocus aria-describedby="btn-search" value="{{ search.terms | escape }}">
+         <div class="input-group-append">
+           <button class="btn btn-primary btn-lg" type="submit" id="btn-search">{{ 'general.search.submit' | t }}</button>
+         </div>
+       </div>
+     </form>
+     
+     {% if search.performed and search.results_count == 0 %}
+     <hr>
+     <p>{{ 'general.search.no_results_html' | t: terms: search.terms }}</p>
+     {% endif %}
+
+     {% if search.performed %}
+     {% if search.results_count > 0 %}
+     <hr>
+     {% endif %}
+     <div class="row">
+       {% for item in search.results %}
+       <div class="col-12 col-sm-6 col-md-3">
+         <a href="{{ item.url }}">
+           {% if item.object_type == 'product' %}
+           {% render 'card-product', product: item %}
+           {% else %}
+           {% render 'card-article', article: item %}
+           {% endif %}
+         </a>
+       </div>
+       {% endfor %}
+     </div>
+
+     {% if paginate.pages > 1 %}
+     {% render 'pagination', paginate:paginate %}
+     {% endif %}
+     {% endif %}
+   </div>
+
+  </div>
+</section>
+
+{% endpaginate %}

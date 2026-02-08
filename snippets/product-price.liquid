@@ -1,0 +1,26 @@
+{%- if variant -%}
+  {%- assign compare_at_price = variant.compare_at_price -%}
+  {%- assign price = variant.price -%}
+  {%- assign available = variant.available -%}
+{%- else -%}
+  {%- assign compare_at_price = product.compare_at_price -%}
+  {%- assign price = product.price -%}
+  {%- assign available = product.available -%}
+{%- endif -%}
+
+{%- assign money_price = price | money -%}
+
+{%- if compare_at_price > price and available -%}
+	{%- assign has_sale_class = '' -%}
+{%- else -%}
+	{%- assign has_sale_class = 'd-none' -%}
+{%- endif -%}
+
+<p class="price">
+  <span class="product-price" content="{{ money_price | divided_by: 100.00 }}"{% unless no_price_change %} product-price{% endunless %}>{{ money_price | remove: '.00' }}</span>
+  <span class="product-original-price {{ has_sale_class }}" content="{{ compare_at_price | divided_by: 100.00 }}"{% unless no_price_change %} original-price{% endunless %}>{{ compare_at_price | money | remove: '.00' }}</span>
+  {% if product.metafields.global.size != blank %}
+  <span>({{ product.metafields.global.size }})</span>
+  {% endif %}
+</p>
+<div class="badge bg-primary {{ has_sale_class }}" savings-badge>Save <span>{{ compare_at_price | minus: price | times: 100.0 | divided_by: compare_at_price | money_without_currency | times: 100 | remove: '.0'}}</span>%</div>

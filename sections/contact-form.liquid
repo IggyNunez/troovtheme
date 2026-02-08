@@ -1,0 +1,169 @@
+<style>
+  {%- unless section.settings.color_bg == "rgba(0,0,0,0)" -%}#section-{{ section.id }} {  background-color: {{ section.settings.color_bg }}!important; }{%- endunless -%}
+  {%- unless section.settings.color_title == "rgba(0,0,0,0)" -%}#section-{{ section.id }} .title { color: {{ section.settings.color_title }};  }{%- endunless -%}
+  {%- unless section.settings.color_pretitle  == "rgba(0,0,0,0)" -%}#section-{{ block.id }} .pre-title { color: {{ section.settings.color_pretitle }};  }{%- endunless -%}
+  {%- unless section.settings.color_body  == "rgba(0,0,0,0)" -%}#section-{{ section.id }} p { color: {{ section.settings.color_body }};  }{%- endunless -%}
+  {%- unless section.settings.max_width == 0 -%}#section-{{ section.id }} { max-width: {{ section.settings.max_width | append:"px" }}; margin:0 auto; }{%- endunless -%}
+</style>
+
+<section class="contact-form" id="section-{{ section.id }}">
+  <div class="container{% if section.settings.fluid_section %}-fluid{% endif %} {{ section.settings.alignment }}">
+    
+    {% if section.settings.title != blank or section.settings.description != blank %}
+    <div class="content header">
+      {%- if section.settings.pretitle != blank -%}<p class="pre-title">{{ section.settings.pretitle }}</p>{%- endif -%}
+      {%- if section.settings.title != blank -%}
+      <{{ section.settings.header_tag }} class="title">{{ section.settings.title }}</{{ section.settings.header_tag }}>
+        {%- endif -%}
+
+        {%- if section.settings.description != blank -%}
+        <div class="body">{{ section.settings.description }}</div>
+    	{%- endif -%}
+  	</div>
+  	{%- endif -%}
+  
+    {% form 'contact' %}
+    <input type="hidden" class="spam-check" value="">
+
+    {% if form.posted_successfully? %}
+    <div class="alert alert-success text-center">
+      <h6>{{ 'contact.form.post_success_title' | t }}</h6>
+      <p>{{ 'contact.form.post_success' | t }}</p>
+    </div>
+    {% endif %}
+
+    {% if form.errors %}
+    <div class="alert alert-danger">
+      <p>{{ 'contact.form.error_heading' | t }}</p>
+    </div>
+    {% endif %}
+
+    <div class="mb-3 text-start">
+      <label for="inputName" class="form-label">Name</label>
+      <input type="text" name="contact[name]" class="form-control" id="inputName" placeholder="Your Name">
+    </div>
+    <div class="mb-3">
+      <label for="inputEmail" class="form-label">Email address</label>
+      <input type="email" name="contact[email]" class="form-control" id="inputEmail" placeholder="Enter Email">
+    </div>
+  
+    <div class="mb-3">
+      <label for="inputSubject" class="form-label">Subject</label>
+      <input type="text" name="contact[subject]" class="form-control" id="inputSubject">
+    </div>
+  
+    <div class="mb-3">
+      <label for="inputMessage" class="form-label">Message</label>
+      <textarea class="form-control" id="inputMessage" name="contact[body]" rows="6"></textarea>
+    </div>
+  
+      <button type="submit" class="btn btn-primary">Submit</button>
+    {% endform %}
+
+  </div>
+</section>
+
+{% schema %}
+  {
+    "name": "Contact Form",
+    "settings": [
+      {
+        "type": "checkbox",
+        "id": "fluid_section",
+        "label": "Borderless container",
+        "default": true
+      },
+      {
+      	"type": "color",
+      	"id": "color_bg",
+      	"label": "Background color",
+      	"default": "rgba(0,0,0,0)"
+      },
+      {
+        "type": "text",
+        "id": "anchor_id",
+        "label": "Section Anchor ID"
+      },
+      {
+        "type": "text",
+        "id": "class",
+        "label": "Custom class"
+      },
+      {
+        "type": "range",
+        "id": "max_width",
+        "label": "Max Width",
+        "min": 0,
+        "max": 1000,
+        "step": 50,
+        "default": 0
+      },
+      {
+        "type": "header",
+        "content": "Content"
+      },
+
+      {
+        "type": "select",
+        "id": "alignment",
+        "label": "Alignment",
+        "default": "",
+        "options": [
+          { "value": "text-center", "label": "Center" },
+          { "value": "", "label": "Left" },
+          { "value": "text-end", "label": "Right" }
+        ]
+      },
+      {
+        "type": "text",
+        "id": "pretitle",
+        "label": "Pre-Title"
+      },
+      {
+        "type": "color",
+        "id": "color_pretitle",
+        "label": "Pre-Title color",
+        "default": "rgba(0,0,0,0)"
+      },
+      {
+        "type": "html",
+        "id": "title",
+        "label": "Title"
+      },
+      {
+        "type": "select",
+        "id": "header_tag",
+        "label": "Title Tag Type",
+        "default": "h2",
+        "options": [ 
+		  { "value": "h1", "label": "h1" },
+          { "value": "h2", "label": "h2" },
+          { "value": "h3", "label": "h3" },
+          { "value": "h4", "label": "h4" }
+        ]
+      },
+      {
+        "type": "color",
+        "id": "color_title",
+        "label": "Title color",
+        "default": "rgba(0,0,0,0)"
+      },
+      {
+        "type": "html",
+        "id": "description",
+        "label": "Body"
+      },
+      {
+        "type": "color",
+        "id": "color_body",
+        "label": "Body color",
+        "default": "rgba(0,0,0,0)"
+      }
+    ],
+    "presets": [
+      {
+        "name": "Contact Form"
+      }
+    ]
+  }
+{% endschema %}

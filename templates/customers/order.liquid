@@ -1,0 +1,87 @@
+<section>
+  <div class="container">
+    
+    {% render 'breadcrumbs' %}
+    <h1>{{ 'customer.order.title' | t: name: order.name }}</h1>
+    {%- assign order_date = order.created_at | date: "%B %d, %Y %I:%M%p" -%}
+    <p>{{ 'customer.order.date' | t: date: order_date }}</p>
+
+    {% capture financial_status_color %}
+    {% assign warning_status = "pending, authorized, refunded, partially_refunded" | split: ", " %}
+    {% assign danger_status = "voided" | split: ", " %}
+    {% assign success_status = "paid, partially_paid" | split: ", " %}
+    {% if warning_status contains order.financial_status %}badge-warning{% endif %} 
+    {% if danger_status contains order.financial_status %}badge-danger{% endif %} 
+    {% if success_status contains order.financial_status %}badge-primary{% endif %} 
+    {% endcapture %}
+
+    {% capture fulfillment_status_color %}
+    {% assign warning_status = "unfulfilled, partial" | split: ", " %}
+    {% assign danger_status = "voided" | split: ", " %}
+    {% assign success_status = "fulfilled" | split: ", " %}
+    {% if warning_status contains order.fulfillment_status %}badge-warning{% endif %} 
+    {% if danger_status contains order.fulfillment_status %}badge-danger{% endif %} 
+    {% if success_status contains order.fulfillment_status %}badge-primary{% endif %} 
+    {% endcapture %}
+
+    {% comment %}<p><strong>{{ 'customer.order.payment_status' | t }}:</strong><br /><span class="badge badge-lg {{ financial_status_color }}">{{ order.financial_status_label }}</span></p>{% endcomment %}
+    <p><strong>{{ 'customer.order.fulfillment_status' | t }}:</strong><br /><span class="badge badge-lg {{ fulfillment_status_color }}">{{ order.fulfillment_status_label }}</span></p>
+
+    <div class="row">
+      <div class="col-12 col-md-8">
+   
+        {% if order.cancelled %}
+          <div class="alert alert-warning" role="alert">
+            {%- assign cancelled_at = order.cancelled_at | date: "%B %d, %Y %I:%M%p" -%}
+            <p>{{ 'customer.order.cancelled' | t: date: cancelled_at }}</p>
+            <p>{{ 'customer.order.cancelled_reason' | t: reason: order.cancel_reason }}</p>
+          </div>
+        {% endif %}
+        
+        <h5>{{ 'customer.order.items_title' | t }}</h5>
+		<hr class="hr-sm" />
+
+        <ul class="order-list list-unstyled">
+          {% for line_item in order.line_items %}
+          <li class="media">
+            <div class="media mt-3">
+              {% render 'card-cart-item', item:line_item, view_only:true %}
+            </div>
+          </li>
+          {% endfor %}
+        </ul>
+        
+        <div class="row">
+          <div class="col-12 text-right">{{ 'customer.order.subtotal' | t }}: {{ order.subtotal_price | money }}</div>
+          {% for discount in order.discounts %}
+          <div class="col-12 text-right">{{ discount.code }} {{ 'customer.order.discount' | t }}: {{ discount.savings | money }}</div>
+          {% endfor %}
+          {% for shipping_method in order.shipping_methods %}
+          <div class="col-12 text-right">{{ 'customer.order.shipping' | t }} ({{ shipping_method.title }}): {{ shipping_method.price | money }}</div>
+          {% endfor %}
+          {% for tax_line in order.tax_lines %}
+          <div class="col-12 text-right">({{ tax_line.title }} {{ tax_line.rate | times: 100 }}%): {{ tax_line.price | money }}</div>
+          {% endfor %}
+          <div class="col-12 text-right mt-2"><strong>{{ 'customer.order.total' | t }}: {{ order.total_price | money }} {{ order.currency }}</strong></div>
+        </div>
+            
+      </div>
+      <div class="col-12 col-md-4">
+         <hr class="d-block d-sm-block d-md-none" />
+        <div class="row">
+          <div class="col col-sm-12">
+            <h5>{{ 'customer.order.billing_address' | t }}</h5>
+            {{ order.billing_address | format_address }}
+          </div>
+          <div class="col col-sm-12">
+            <hr class="d-none d-sm-block" />
+            <h5>{{ 'customer.order.shipping_address' | t }}</h5>
+            {{ order.shipping_address | format_address }}
+          </div>
+        </div>
+        
+      </div>
+    </div>
+  </div>
+
+</section>

@@ -1,0 +1,216 @@
+{% case section.settings.grid_xs %}
+{% when 2 %}
+{%- assign grid_width_xs = 'col-6' -%}
+{% when 3 %}
+{%- assign grid_width_xs = 'col-4' -%}
+{% when 4 %}
+{%- assign grid_width_xs = 'col-3' -%}
+{% else %}
+{%- assign grid_width_xs = 'col-12' -%}
+{% endcase %}
+
+{% case section.settings.grid %}
+{% when 2 %}
+{%- assign grid_width = 'col-md-6' -%}
+{% when 3 %}
+{%- assign grid_width = 'col-md-4' -%}
+{% when 4 %}
+{%- assign grid_width = 'col-md-3' -%}
+{% when 5 %}
+{%- assign grid_width = 'col-md-2' -%}
+{% when 6 %}
+{%- assign grid_width = 'col-md-2' -%}
+{% else %}
+{%- assign grid_width = 'col-md' -%}
+{% endcase %}
+
+<style>
+  {%- unless section.settings.color_title  == "rgba(0,0,0,0)" -%}#section-{{ section.id }} .header .title { color: {{ section.settings.color_title }};  }{%- endunless -%}
+  {%- unless section.settings.color_body  == "rgba(0,0,0,0)" -%}#section-{{ section.id }} .header p { color: {{ section.settings.color_body }};  }{%- endunless -%}
+  {%- unless section.settings.color_bg == "rgba(0,0,0,0)" -%}#section-{{ section.id }} {  background-color: {{ section.settings.color_bg }}!important; }{%- endunless -%}
+</style>
+
+<section class="logos" id="section-{{ section.id }}">
+  <div class="container{%- if section.settings.fluid_section -%}-fluid{%- endif -%}">
+    
+    {% if section.settings.title != blank or section.settings.body != blank %}
+    <div class="content header {{ section.settings.alignment }}">
+      {% if section.settings.title != blank %}
+      <{{ section.settings.header_tag }} class="title">{{ section.settings.title }}</{{ section.settings.header_tag }}>
+      {% endif %}
+
+      {% if section.settings.body != blank %}
+      <p class="lead">{{ section.settings.body }}</p>
+      {% endif %}
+
+    </div>
+    {% endif %}
+
+  	<div class="row justify-content-center align-items-center g-5">
+
+      {% for block in section.blocks %}
+        <div class="{{ grid_width_xs }} {{ grid_width }}">
+          {% if block.settings.link != blank %}
+          <a href="{{ block.settings.link }}">
+            {% endif %}
+            {% if block.settings.image != blank %}
+            
+            {%- assign image_title = block.settings.title | default:block.settings.image.alt -%}
+            {%- assign image_width = 200 -%}
+            {%- assign image_height = image_width | divided_by:block.settings.image.aspect_ratio | ceil -%}
+            <img src="{{ block.settings.image | image_url: width:50 }}" data-src="{{ block.settings.image | image_url: width:200 }}" width="{{ image_width }}" height="{{ image_height }}" class="img-fluid lazyload" alt="{{ image_title }}" title="{{ image_title }}" />
+            {% else %}
+            {{ 'logo' | placeholder_svg_tag: 'placeholder-svg' }}
+            {% endif %}
+            {% if block.settings.link != blank %}
+          </a>
+          {% endif %}
+        </div>
+	  {% endfor %}
+
+  	</div>
+    
+    </div>
+</section>
+
+{% schema %}
+  {
+    "name": "Logos",
+    "max_blocks": 12,
+    "settings": [
+      {
+        "type": "header",
+        "content": "Background"
+      },
+      {
+        "type": "checkbox",
+        "id": "fluid_section",
+        "label": "Borderless container",
+        "default": true
+      },
+      {
+      	"type": "color",
+      	"id": "color_bg",
+      	"label": "Background color",
+      	"default": "rgba(0,0,0,0)"
+      },
+      {
+        "type": "text",
+        "id": "anchor_id",
+        "label": "Section Anchor ID"
+      },
+      {
+        "type": "text",
+        "id": "class",
+        "label": "Custom class"
+      },
+      {
+        "type": "header",
+        "content": "Content"
+      },
+      {
+        "type": "select",
+        "id": "alignment",
+        "label": "Text Alignment",
+        "default": "",
+        "options": [ 
+		  { "value": "", "label": "Left" },
+          { "value": "text-center", "label": "Center" },
+          { "value": "text-right", "label": "Right" }
+        ]
+      },
+      {
+        "type": "html",
+        "id": "title",
+        "label": "Title"
+      },
+      {
+        "type": "select",
+        "id": "header_tag",
+        "label": "Title Tag Type",
+        "default": "h2",
+        "options": [ 
+		  { "value": "h1", "label": "h1" },
+          { "value": "h2", "label": "h2" },
+          { "value": "h3", "label": "h3" },
+          { "value": "h4", "label": "h4" }
+        ]
+      },
+      {
+        "type": "color",
+        "id": "color_title",
+        "label": "Title color",
+        "default": "rgba(0,0,0,0)"
+      },
+      {
+        "type": "html",
+        "id": "body",
+        "label": "Description"
+      },
+      {
+        "type": "color",
+        "id": "color_body",
+        "label": "Description color",
+        "default": "rgba(0,0,0,0)"
+      },
+      {
+        "type": "range",
+        "id": "grid",
+        "label": "Per row (desktop)",
+        "min": 2,
+        "max": 8,
+        "step": 1,
+        "default": 8
+      },
+      {
+        "type": "range",
+        "id": "grid_xs",
+        "label": "Per row (mobile)",
+        "min": 1,
+        "max": 4,
+        "step": 1,
+        "default": 2
+      }
+    ],
+    "blocks": [
+      {
+        "type": "logo_image",
+        "name": "Logo",
+        "settings": [
+          {
+            "type": "image_picker",
+            "id": "image",
+            "label": "Image"
+          },
+          {
+            "type": "text",
+            "id": "title",
+            "label": "Title"
+          },
+          {
+            "type": "url",
+            "id": "link",
+            "label": "Link",
+            "info": "Optional"
+          }
+        ]
+      }
+    ],
+    "presets": [
+      {
+        "name": "Logos",
+        "blocks": [
+          {
+            "type": "logo_image"
+          },
+          {
+            "type": "logo_image"
+          },
+          {
+            "type": "logo_image"
+          }
+        ]
+      }
+    ]
+  }
+{% endschema %}

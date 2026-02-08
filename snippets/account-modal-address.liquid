@@ -1,0 +1,99 @@
+{% if action == "edit" %}
+	{%- assign modal_name = "editAddress" | append: form_data.id -%}
+	{%- assign title = 'customer.addresses.edit_address' | t -%}
+    {%- assign cta_label = 'customer.addresses.edit' | t -%}
+{% else %}
+	{%- assign modal_name = "addAddress" | append: form_data.id -%}
+	{%- assign title = 'customer.addresses.add_new' | t -%}
+    {%- assign cta_label = 'customer.addresses.add' | t -%}
+{% endif %}
+
+<div class="modal" tabindex="-1" role="dialog" id="{{ modal_name }}">
+  <div class="modal-dialog modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">{{ title }}</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      
+      {% form 'customer_address', form_data %}
+      <div class="modal-body">
+        
+        {{ form.errors | default_errors }}
+        
+        <div class="row mb-3">
+          <div class="col">
+            <div class="form-floating">
+              <input type="text" id="address_first_name_{{form.id}}" name="address[first_name]" class="form-control" placeholder="Enter recipient first name" value="{{ form.first_name }}">
+              <label for="address_first_name_{{form.id}}">{{ 'customer.addresses.first_name' | t }}</label>
+            </div>
+          </div>
+          <div class="col">
+            <div class="form-floating">
+              <input type="text" name="address[last_name]" class="form-control" id="address_last_name_{{form.id}}" placeholder="Enter recipient last name" value="{{ form.last_name }}">
+              <label for="address_last_name_{{form.id}}">{{ 'customer.addresses.last_name' | t }}</label>
+            </div>
+          </div>
+        </div>
+        
+        <div class="form-floating mb-3">
+          <input type="text" name="address[company]" class="form-control" id="address_company_{{form.id}}" placeholder="Optional company name" value="{{ form.company }}">
+          <label for="address_company_{{form.id}}">{{ 'customer.addresses.company' | t }}</label>
+        </div>
+        
+        <div class="row mb-3">
+          <div class="col">
+            <div class="form-floating">
+              <input type="text" class="form-control" id="address_address1_{{form.id}}" name="address[address1]" placeholder="Enter street number and name (1234 Main St.)" value="{{ form.address1 }}">
+              <label for="address_address1_{{form.id}}">{{ 'customer.addresses.address1' | t }}</label>
+            </div>
+          </div>
+          <div class="col">
+            <div class="form-floating">
+              <input type="text" class="form-control" id="address_address2_{{form.id}}" name="address[address2]" placeholder="Apartment, studio, or floor" value="{{ form.address2 }}">
+              <label for="address_address2_{{form.id}}">{{ 'customer.addresses.address2' | t }}</label>
+            </div>
+          </div>
+        </div>
+        <div class="form-floating mb-3">
+          <input type="text" id="address_city_{{form.id}}" name="address[city]" value="{{ form.city }}" class="form-control">
+          <label for="address_city_{{form.id}}">{{ 'customer.addresses.city' | t }}</label>
+        </div>
+        <div class="row mb-3">
+          <div class="col">
+            <div class="form-floating">
+              <select id="address_country_{{form.id}}" name="address[country]" data-default="{{ form.country }}" class="form-select">{{ country_option_tags }}</select>
+              <label for="address_country_{{form.id}}">{{ 'customer.addresses.country' | t }}</label>
+            </div>
+          </div>
+          <div class="col" id="address_province_container_{{form.id}}">
+            <div class="form-floating">
+              <select id="address_province_{{form.id}}" name="address[province]" data-default="{{ form.province }}" class="form-select"></select>
+              <label for="address_province_{{form.id}}">{{ 'customer.addresses.province' | t }}</label>
+            </div>
+          </div>
+          <div class="col">
+            <div class="form-floating">
+              <input type="text" id="address_zip_{{form.id}}" name="address[zip]" value="{{ form.zip }}" autocapitalize="characters" class="form-control">
+              <label for="address_zip_{{form.id}}">{{ 'customer.addresses.zip' | t }}</label>
+            </div>
+          </div>
+        </div>
+        <div class="form-floating mb-3">
+          <input type="tel" id="address_phone_{{form.id}}" name="address[phone]" value="{{ form.phone }}" class="form-control">
+          <label for="address_phone_{{form.id}}">{{ 'customer.addresses.phone' | t }}</label>
+        </div>
+        <div class="form-check mb-3">
+          {{ form.set_as_default_checkbox | replace: 'id="makeDefault" class="form-check-input"' }}
+          <label class="form-check-label" for="makeDefault">{{ 'customer.addresses.set_default' | t }}</label>
+        </div>
+
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal" onclick="Shopify.CustomerAddress.toggleForm({{form.id}}); return false;">{{ 'customer.addresses.cancel' | t }}</button>
+        <button type="submit" class="btn btn-primary">{{ cta_label }}</button>
+      </div>
+      {% endform %}
+    </div>
+  </div>
+</div>

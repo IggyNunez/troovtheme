@@ -1,0 +1,329 @@
+<section id="sideCart" class="side-cart">
+
+<div class="cart-contents">
+  <div class="cart-header d-flex justify-content-between">
+    <div>{{ 'cart.general.title' | t }} (<span mini-cart-count>{{ cart.item_count }}</span>)</div>
+    <div><a class="cart-close">{{ 'cart.general.continue_shopping' | t }}</a></div>
+  </div>
+  {% comment %}
+  {% if cart.cart_level_discount_applications %}
+  <div class="promo-alert alert" role="alert">{{ cart.cart_level_discount_applications[0].title }}</div>
+  {% endif %}
+  {% endcomment %}
+  <div id="cartNoItems" class="p-3 text-center"{% if cart.item_count > 0 %} style="display:none;"{% endif %}>
+    <p>You have no items in your bag</p>
+  </div>
+
+  <form action="/cart" method="post" id="cartHasItems" class="cart-mini"{% if cart.item_count == 0 %} style="display:none;"{% endif %}>
+    
+    <ul class="order-list list-unstyled" mini-cart-items>
+      {%- for item in cart.items -%}
+      <li class="media" data-variant-id="{{ item.variant_id }}">
+        <div class="media-body">{% render 'card-cart-item', item:item %}</div>
+      </li>
+      {%- endfor -%}
+    </ul>
+
+    <div class="cart-box">
+      <h4 class="cart-total" cart-total-price>{{ cart.total_price | money }}</h4>
+      {% comment %}
+      {%- if cart.total_discounts > 0 -%}
+      <div>{{ 'cart.general.savings' | t }} {{ cart.total_discounts | money }}</div>
+      {%- endif -%}
+      {% endcomment %}
+      <p class="text-secondary">{{ 'cart.general.shipping_at_checkout' | t }}</p>
+      <button type="submit" name="checkout" class="btn btn-primary btn-lg btn-block" mini-cart-btn-checkout>{{ 'cart.general.checkout' | t }}</button>
+      
+      {%- if section.settings.additional_checkout -%}
+      <div class="pt-1">{{ content_for_additional_checkout_buttons }}</div>
+      {%- endif -%}
+      
+      {% assign has_discount_promotion = false %}
+      {% if settings.promo_1_active and settings.promo_1_discount_code != blank %}
+      	{% assign has_discount_promotion = true %}
+	  {% elsif settings.promo_2_active and settings.promo_2_discount_code != blank %}
+      	{% assign has_discount_promotion = true %}
+      {% endif %}
+
+    </div>
+
+  </form>
+
+</div>
+
+{%- if section.settings.show_product_recommendation -%}
+{%- assign selected_item = cart.items[0] -%}
+{%- for item in cart.items -%}
+{%- assign cart_items_ids = cart_items_ids | append: ',' | append: item.product.id -%}
+{%- if item.price > selected_item.price -%}
+{%- assign selected_item = item -%}
+{%- endif -%}
+{%- endfor -%}
+
+{%- assign cart_items_ids = cart_items_ids | slice: 1, cart_items_ids.size -%}
+<div class="cart-product-recommendations" data-url="{{ routes.product_recommendations_url }}?section_id={{ section.id }}&product_id={{ selected_item.product.id | default:4410168868951 }}&limit=8">
+  {%- if recommendations.performed and recommendations.products_count > 0 -%}
+  <h6 class="title">{{ section.settings.product_recommendation_title }}</h6>
+  <div class="product-grid px-4" data-items="{{ recommendations.products.size }}">
+    {%- assign card_count = 0 -%}
+    {%- for product in recommendations.products -%}
+    {%- unless cart_items_ids contains product.id or product.tags contains settings.exclude_tags -%}
+    {%- assign card_count = card_count | plus:1 -%}
+    <div class="item--{{product.id}}">
+      {% render 'card-product-list-item', product: product, hide_description: section.settings.cart_hide_description %}
+    </div>
+    {%- if card_count == 4 -%} {% break %} {%- endif -%}
+    {%- endunless -%}
+    {% endfor %}
+  </div>
+  {%- endif -%}
+</div>
+{%- endif -%}
+
+</section>
+
+{%- if section.settings.cart_toast -%}
+<div class="toast-item-added position-fixed p-3 top-0 start-50 translate-middle-x">
+  <div id="itemAddedToast" class="toast hide text-white bg-primary border-0" role="alert" aria-live="assertive" aria-atomic="true">
+    <div class="d-flex">
+      <div class="toast-body">
+        {{ 'cart.general.item_added' | t }} <a href="/cart" class='btn btn-sm btn-outline-white'>{{ 'cart.general.view_cart' | t }}</a>
+      </div>
+      <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+    </div>
+  </div>
+</div>
+{%- endif -%}
+
+  <script type="text/javascript">
+    window.addEventListener('DOMContentLoaded', (event) => {
+
+    const quantity_to_add = 1;
+
+    function buildRecommendations() {
+      const handleIntersection = (entries, observer) => {
+        if (!entries[0].isIntersecting) return;
+        observer.unobserve(productRecommendationsSection);
+        const url = productRecommendationsSection.dataset.url;
+        fetch(url)
+        .then(response => response.text())
+        .then(text => {
+          const html = document.createElement('div');
+          html.innerHTML = text;
+          const recommendations = html.querySelector('.cart-product-recommendations');
+          if (recommendations && recommendations.innerHTML.trim().length) {
+            productRecommendationsSection.innerHTML = recommendations.innerHTML;
+          }
+
+          bindCartActions();
+          productRecommendationsSection.querySelectorAll('.cart-item button[data-bs-toggle]').forEach(item => {
+            item.addEventListener('click', event => {
+              event.preventDefault();
+            })
+          });
+        })
+        .catch(e => {
+          console.error(e);
+        });
+      };
+      const productRecommendationsSection = document.querySelector('.cart-product-recommendations');
+      const observer = new IntersectionObserver(handleIntersection, {rootMargin: '0px 0px 200px 0px'});
+      observer.observe(productRecommendationsSection);
+    };
+
+	function showCart(show) {
+      var sideCart = jQuery('#sideCart');
+      var sideCartOverlay = jQuery('div.mainNavOverlay.cart');
+
+      if( window.innerWidth > 768) {
+        if(show && sideCart.is(":visible") == false) {
+          if( sideCartOverlay.length > 0 ) {
+            sideCartOverlay.fadeIn(500);
+          } else {
+            jQuery('body').prepend('<div class="mainNavOverlay cart"></div>');
+             var sideCartOverlay = jQuery('div.mainNavOverlay.cart');
+          }
+          sideCartOverlay.on('click', function (evt) { showCart(false); });
+
+          sideCart.fadeIn(500, function() {
+            jQuery(this).animate({ scrollTop: 0 }, 500);
+
+          });
+          buildRecommendations();
+        } else if(show==false) {
+          sideCartOverlay.fadeOut(500);
+          sideCart.fadeOut(500);
+        } // if(show)
+      } else {
+        var itemAddedToastEle = document.getElementById('itemAddedToast');
+        var itemAddedToast = bootstrap.Toast.getInstance(itemAddedToastEle);
+        itemAddedToast.show();
+      };
+	};
+
+    function bindCartActions() {
+
+      var productModals = [].slice.call(document.querySelectorAll('.modal.product'))
+      var productModal = productModals.map(function (productModalEl) {
+        productModalEl.addEventListener('shown.bs.modal', function (event) {
+          var product_id = jQuery(event.target).data('product-id');
+          var variant_id = jQuery(event.target).data('variant-id');
+          var modal = bootstrap.Modal.getInstance(event.target);
+
+          jQuery('[variant-list] button').click(function() {
+            jQuery('[variant-list] .btn').removeClass('active');
+            jQuery(this).addClass('active');
+            jQuery(event.target).find('[variant-select]').val( jQuery(this).data('variant-id') );
+            jQuery(event.target).find('button.btn-primary').html("{{'products.product.add_to_cart' | t }}");
+            jQuery(event.target).find('button.btn-primary').attr("disabled", false);
+            jQuery(event.target).find('[product-price]').html( jQuery(this).data('price') );
+            jQuery(event.target).find('[add-to-cart]').data('variant-id', jQuery(this).data('variant-id') );
+          });
+
+          jQuery(event.target).find('[add-to-cart]').click(function(evt) {
+            modal.hide();
+          });
+        });
+
+        productModalEl.addEventListener('hidden.bs.modal', function (event) {
+          var modal = bootstrap.Modal.getInstance(event.target);
+          if( jQuery('.modal-backdrop') ) { 
+            jQuery('.modal-backdrop').remove(); 
+            jQuery('.modal-backdrop').hide();
+            jQuery('body').removeClass('modal-open');
+            jQuery('body').attr('style','');
+            modal.modal('hide');
+          }
+        });
+      });
+
+      jQuery('section.cart .order-list [quantity-select]').each(function( index ) {
+
+        if(jQuery(this).next().length == 0) jQuery(this).inputSpinner();
+
+        jQuery(this).on("change", function (event) {
+          var variant_id = jQuery(this).closest('[quantity-select]').data('variant-id');
+          var item_price = jQuery(this).closest('[quantity-select]').data('variant-price');
+          var item_original_price = jQuery(this).closest('[quantity-select]').data('variant-original-price');
+          var qty = jQuery(this).val();
+          var target_ele = jQuery(this);
+          var parent_ele =jQuery(this).parent().parent().parent();
+
+          Shopify.changeItem( variant_id, qty, function() {
+            /* update line item price */
+            parent_ele.find('[item-price]').html( Shopify.formatMoney( (item_price*qty) ));
+            if( item_original_price > item_price)
+              parent_ele.find('[item-original-price]').html( Shopify.formatMoney( (item_original_price*qty) ));
+          });
+        });
+      });
+
+      /* Click Add-to-Cart on item */
+      jQuery('[remove-from-cart]').on('click', function (evt) {
+        // if variant ID passed, use that
+        evt.preventDefault();
+        Shopify.removeItem( jQuery(this).data('variant-id') );
+      });
+    };
+
+    Shopify.runPromotions();
+    bindCartActions();
+
+    jQuery(".cart-mini .nav-link").on('click', function(evt) {
+      evt.preventDefault();
+      if( window.innerWidth > 768 && Shopify.request_path != '/cart') {
+        bindCartActions();
+        Shopify.runPromotions();
+        showCart(true);
+      } else {
+        window.location.href = this.href;
+      };
+    });
+
+    if( window.innerWidth > 768 ) {
+      jQuery('#sideCart .cart-close').on('click', function (evt) { evt.preventDefault(); showCart(false); });
+    } else {
+      jQuery('#sideCart').remove();
+    };
+
+    jQuery('.cart-mini .dropdown-menu a').on('click', function() {
+      location.href = jQuery(this).attr('href');
+    });
+    
+    jQuery('#MiniCartClose').click(function() {
+      jQuery(this).parents('.dropdown').find('.dropdown-toggle').dropdown('toggle');
+	});
+
+    /* Click Add-to-Cart on item */
+    jQuery('[add-to-cart]').on('click', function (evt) {
+      // if variant ID passed, use that
+      evt.preventDefault();
+
+      var product_id = jQuery(this).data('product-id');
+      var variant_id = jQuery(this).data('variant-id');
+      var card = jQuery('#product-'+product_id);
+
+      /* item is already in cart */
+      if( card && jQuery(this).hasClass('active') ) {
+        Shopify.removeItem( variant_id, function() {
+          card.find('.card-text .btn').html('add to bag');
+          card.find('.card-text .btn').removeClass('active');
+          card.removeClass('item-in-cart');
+    	});
+      /* item is NOT in cart */
+      } else {
+        Shopify.addItem( variant_id, quantity_to_add, function(item) {
+          if( window.location.pathname == '/cart' ) {
+           window.location.href = window.location.pathname;
+          } else {
+            
+            bindCartActions();
+            Shopify.runPromotions();
+            showCart(true);
+            
+            //card.find('.card-text .btn').html('Item added');
+            card.find('.card-text .btn').addClass('active');
+            card.addClass('item-in-cart');
+          }
+    	});
+      } // if( jQuery(this).hasClass('active') )
+    });
+      
+    });
+  </script>
+  
+{% schema %}
+  {
+    "name": "Side Cart",
+    "settings": [
+      {
+        "type": "checkbox",
+        "id": "cart_toast",
+        "label": "Show Toast on Mobile",
+        "default": true
+      },
+      {
+        "type": "checkbox",
+        "id": "show_product_recommendation",
+        "label": "Show Product Recommendations",
+        "default": true
+      },
+      {
+        "type": "text",
+        "id": "product_recommendation_title",
+        "label": "Product Recommendation Title",
+        "default": "Recommended Items"
+      },
+      {
+        "type": "checkbox",
+        "id": "additional_checkout",
+        "label": "Show Additional Checkout Options",
+        "default": false
+      }
+    ]
+  }
+{% endschema %}
+
+{% stylesheet %}
+{% endstylesheet %}
+

@@ -1,0 +1,144 @@
+<footer class="site-footer">
+  <section>
+  <div class="container">
+
+    <div class="row justify-content-between align-items-end">
+      
+      <div class="col-12 col-md-4 order-2 order-md-1">
+            
+        {%- if section.settings.logo -%}
+        <a href="{{ shop.url }}" class="footer-logo">
+          {%- assign image_width = section.settings.logo_max_width | default: section.settings.logo.width -%}
+          {%- assign image_height = image_width | divided_by:section.settings.logo.aspect_ratio | ceil -%}
+          <img data-src="{{ section.settings.logo | image_url: width:image_width, height: image_height }}" class="logo lazyload" width="{{ image_width }}" height="{{ image_height }}" alt="{{ section.settings.logo.alt | default: shop.name }}">
+        </a>
+        {%- endif -%}
+        
+        {%- assign footer_linklist = section.settings.footer_linklist -%}
+        {% if linklists[footer_linklist].links.size > 0 %}
+        <ul class="list-unstyled">
+          {% for link in linklists[footer_linklist].links %}
+          <li>
+            <a href="{{ link.url }}"{% unless link.object %} target="_blank"{% endunless %}>{{ link.title }}</a>
+          </li>
+          {% endfor %}
+        </ul>
+        {% endif %}
+        
+        {% for block in section.blocks %}
+        <a href="{{ block.settings.link }}"{% unless block.settings.icon != blank %} class="btn btn-sm btn-outline-white"{% endunless %}>{% unless block.settings.icon != blank %}{{ block.settings.title }}{% else %}{{ block.settings.icon }}{% endunless %}</a>
+        {% endfor %}
+      </div>
+      
+      <div class="col-12 col-md-4 order-1 order-md-2">
+        {%- if section.settings.email_form != blank -%}
+        <div>{{  section.settings.email_form }}</div>
+        {%- endif -%}
+      </div>
+    </div>
+
+  </div>
+  </section>
+</footer>
+
+<div class="boilerplate text-center">
+    <p>Copyright &copy; {{ "now" | date: "%Y" }}, {{ shop.name | link_to: '/' }}. All Rights Reserved.</p>
+    {%- if settings.show_payment_icons and shop.enabled_payment_types != empty -%}
+    <div class="payment-icons my-1">
+      {%- for type in shop.enabled_payment_types -%}
+      {%- if settings.show_payment_options contains type -%}
+      <img data-src="{{ type | payment_type_img_url }}" alt="{{ type | camelcase }}" title="{{ type | camelcase }}" width="38" height="24" class="lazyload" />
+      {%- endif -%}
+      {%- endfor -%}
+    </div>
+    {%- endif -%}
+</div>
+
+{% schema %}
+  {
+    "name": "Footer",
+    "settings": [
+      {
+        "type": "image_picker",
+        "id": "logo",
+        "label": "Logo image"
+      },
+      {
+        "type": "range",
+        "id": "logo_max_width",
+        "label": "Logo Max Width",
+        "min": 0,
+        "max": 500,
+        "step": 5,
+        "unit": "px",
+        "default": 0,
+		"info": "Set to 0 for no max"
+      },
+      {
+        "type": "text",
+        "id": "footer_linklist_title",
+        "label": "Primary menu title",
+        "default": "INFORMATION"
+      },
+	  {
+        "type": "link_list",
+        "id": "footer_linklist",
+        "label": "Primary menu",
+        "default": "footer"
+      },
+      {
+        "type": "link_list",
+        "id": "footer_linklist_legal",
+        "label": "Legal links",
+		"info": "Displays inline to the footer copyright"
+      },
+      {
+        "type": "checkbox",
+        "id": "footer_social_enable",
+        "label": "Show social icons",
+        "default": true
+      },
+	  {
+        "type": "text",
+        "id": "footer_social_title",
+        "label": "Social title",
+        "default": "Follow us"
+      },
+      {
+        "type": "html",
+        "id": "email_form",
+        "label": "Email Subscription Embedded Form",
+		"info": "copy/paste from Klayvio or Mailchimp"
+      },
+      {
+        "type": "checkbox",
+        "id": "show_payment_icons",
+        "label": "Show payment icons",
+        "default": false
+      }
+    ],
+    "blocks": [
+      {
+        "type": "links",
+        "name": "Links",
+        "settings": [
+          {
+            "type": "text",
+            "id": "icon",
+            "label": "Icon"
+          },
+          {
+            "type": "text",
+            "id": "title",
+            "label": "Label"
+          },
+          {
+            "type": "url",
+            "id": "link",
+            "label": "Link"
+          }
+        ]
+      }
+    ]
+  }
+{% endschema %}

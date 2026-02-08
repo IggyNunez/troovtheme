@@ -1,0 +1,27 @@
+<section>
+
+  <div class="container">
+    
+    <h1>{{ 'customer.activate_account.title' | t }}</h1>
+    <p>{{ 'customer.activate_account.subtext' | t }}</p>
+
+    {% form 'activate_customer_password' %}
+    {{ form.errors | default_errors }}
+
+    <div class="form-floating mb-3">
+      <input type="password" class="form-control" value="" name="customer[password]" id="CustomerPassword" placeholder="{{ 'customer.activate_account.password' | t }}">
+      <label for="CustomerPassword">{{ 'customer.activate_account.password' | t }}</label>
+    </div>
+
+    <div class="form-floating mb-3">
+      <input type="password" class="form-control" value="" name="customer[password_confirmation]" id="CustomerPasswordConfirmation" placeholder="{{ 'customer.activate_account.password_confirm' | t }}">
+      <label for="CustomerPasswordConfirmation">{{ 'customer.activate_account.password_confirm' | t }}</label>
+    </div>
+    
+    <button type="submit" class="btn btn-primary">{{ 'customer.activate_account.submit' | t }}</button>
+    <button type="button" class="btn btn-secondary-outline mt-3" onclick="Shopify.CustomerAddress.toggleForm({{form.id}}); return false;">{{ 'customer.activate_account.cancel' | t }}</button>
+
+    {% endform %}
+
+  </div>
+</section>

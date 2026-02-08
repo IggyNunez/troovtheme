@@ -1,0 +1,60 @@
+<style>
+  {%- unless section.settings.color_bg == "rgba(0,0,0,0)" -%}#section-{{ section.id }} {  background-color: {{ section.settings.color_bg }}!important; }{%- endunless -%}
+  {%- unless section.settings.color_line == "rgba(0,0,0,0)" -%}#section-{{ section.id }} hr { opacity:1; background-color: {{ section.settings.color_line }}!important;  }{%- endunless -%}
+</style>
+
+<section class="divider py-{{ section.settings.padding }}" id="section-{{ section.id }}">
+  <div class="container{%- if section.settings.fluid_section -%}-fluid{%- endif -%}">
+    <hr />
+  </div>
+</section>
+
+{% schema %}
+  {
+    "name": "Divider",
+    "settings": [
+      {
+        "type": "checkbox",
+        "id": "fluid_section",
+        "label": "Borderless container",
+        "default": true
+      },
+      {
+        "type": "color",
+        "id": "color_bg",
+        "label": "Background color",
+        "default": "rgba(0,0,0,0)"
+      },
+      {
+        "type": "text",
+        "id": "anchor_id",
+        "label": "Section Anchor ID"
+      },
+      {
+        "type": "text",
+        "id": "class",
+        "label": "Custom class"
+      },
+      {
+        "type": "color",
+        "id": "color_line",
+        "label": "Divider color",
+        "default": "#EEEEEE"
+      },
+      {
+        "type": "range",
+        "id": "padding",
+        "min": 0,
+        "max": 7,
+        "step": 1,
+        "unit": "rem",
+        "label": "Top/Bottom Padding",
+        "default": 4
+      }
+	],
+    "presets": [{
+      "name": "Divider",
+      "category": "Media"
+    }]
+  }
+{% endschema %}

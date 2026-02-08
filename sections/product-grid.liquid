@@ -1,0 +1,489 @@
+{%- assign product_limit = section.settings.grid | times: section.settings.rows -%}
+
+<style>
+  {%- unless section.settings.color_title  == "rgba(0,0,0,0)" -%}#section-{{ section.id }} .header .title { color: {{ section.settings.color_title }};  }{%- endunless -%}
+  {%- unless section.settings.color_body  == "rgba(0,0,0,0)" -%}#section-{{ section.id }} .header p { color: {{ section.settings.color_body }};  }{%- endunless -%}
+  {%- unless section.settings.color_bg == "rgba(0,0,0,0)" -%}#section-{{ section.id }} {  background-color: {{ section.settings.color_bg }}!important; }{%- endunless -%}
+
+  {%- unless section.settings.offset_color  == "rgba(0,0,0,0)" -%} 
+	#section-{{ section.id }} .background-offset { background-color: {{ section.settings.offset_color }}; {%- if section.settings.offset_position == "center-h" -%}top: 50%; -ms-transform: translateY(-50%); transform: translateY(-50%); {%- elsif section.settings.offset_position == "center-v" -%}left: 50%; -ms-transform: translateX(-50%); transform: translateX(-50%); {%- else -%} -%}{{ section.settings.offset_position }}:0;{%- endif -%}{%- if section.settings.offset_position == "top" or section.settings.offset_position == "bottom" or section.settings.offset_position == "center-h" -%}height:{{ section.settings.offset_height }}%;{%- else -%}width:{{ section.settings.offset_height }}%;{%- endif -%} }
+  {%- endunless -%}
+  
+  {%- unless section.settings.image == blank -%} 
+ 	#section-{{ section.id }} { background-image: url('{{section.settings.image | img_url:"1600x" }}'); background-size:cover; }
+  {%- endunless -%}
+
+  {%- for block in section.blocks -%}
+    {%- unless block.settings.color_body  == "rgba(0,0,0,0)" -%}#block-{{block.id}} p, #block-{{block.id}} p a { color: {{ block.settings.color_body }}; }{%- endunless -%}
+    {%- unless block.settings.color_title == "rgba(0,0,0,0)" -%}
+    #block-{{ block.id }} .title { color: {{ block.settings.color_title }};  }
+    #block-{{ block.id }} .breadcrumb-item, #block-{{ block.id }} .breadcrumb-item a { color: {{ block.settings.color_title }}; }
+    {%- endunless -%}
+    {%- unless block.settings.color_pretitle  == "rgba(0,0,0,0)" -%}#block-{{ block.id }} .pre-title { color: {{ block.settings.color_pretitle }};  }{%- endunless -%}
+  {%- endfor -%}
+</style>
+
+{% case section.settings.grid_xs %}
+{% when 2 %}
+{%- assign grid_width_xs = 'col-6' -%}
+{% when 3 %}
+{%- assign grid_width_xs = 'col-4' -%}
+{% when 4 %}
+{%- assign grid_width_xs = 'col-3' -%}
+{% else %}
+{%- assign grid_width_xs = 'col-12' -%}
+{% endcase %}
+
+{% case section.settings.grid %}
+{% when 1 %}
+{%- assign grid_width = 'col-md-12' -%}
+{% when 2 %}
+{%- assign grid_width = 'col-md-6' -%}
+{% when 3 %}
+{%- assign grid_width = 'col-md-4' -%}
+{% when 4 %}
+{%- assign grid_width = 'col-md-3' -%}
+{% else %}
+{%- assign grid_width = 'col-md-2' -%}
+{% endcase %}
+
+{%- if section.settings.anchor_id -%}<a name="{{section.settings.anchor_id}}" class="anchor"></a>{%- endif -%}
+<section id="section-{{ section.id }}" class="products {{ section.settings.class }} {% if section.settings.show_carousel != blank %} carousel {{ section.settings.show_carousel }}{% endif %}">
+  {%- unless section.settings.offset_color  == "rgba(0,0,0,0)" -%}<div class="background-offset"></div>{%- endunless -%}	
+  <div class="container{%- if section.settings.fluid_section -%}-fluid{%- endif -%}">
+      {% if section.settings.title != blank or section.settings.description != blank %}
+      <div class="content header {{ section.settings.alignment }}">
+        {%- if section.settings.title != blank -%}
+        <{{ section.settings.header_tag }} class="title">{{ section.settings.title }}</{{ section.settings.header_tag }}>
+          {%- endif -%}
+
+          {%- if section.settings.description != blank -%}
+          <div>{{ section.settings.description }}</div>
+          {%- endif -%}
+      </div>
+      {%- endif -%}
+
+      <div class="row {{ section.settings.v_align }} {{ section.settings.h_align }}"{% if section.settings.show_carousel != blank %} data-slider-display="{{ section.settings.show_carousel }}" data-slider-slides="{{ section.settings.slides_to_show }}" data-slider-dots="{{ section.settings.carousel_dots }}" data-slider-arrows="{{ section.settings.carousel_arrows }}"{% endif %}>
+        {%- assign block_count = 0 -%}
+        {%- for block in section.blocks -%}
+          
+          {%- if block_count == product_limit -%}{% break %}{%- endif -%}
+        
+          {%- case block.type -%}
+            {%- when 'card' -%}
+              <div class="{{ grid_width_xs }} {{ grid_width }}" id="block-{{block.id}}">
+                {%- render 'card-content', card:block.settings, section: section.settings -%}
+                {%- assign block_count = block_count | plus:1 -%}
+              </div>
+            {%- when 'product' -%}
+              {%- assign product = all_products[block.settings.product] -%}
+
+              {%- if block.settings.show_variants -%}
+                {% for variant in product.variants %}
+                  <div class="{{ grid_width_xs }} {{ grid_width }}" id="block-{{block.id}}">
+                  {%- render 'card-product', product:product, variant: variant -%}
+                  {%- assign block_count = block_count | plus:1 -%}
+                  {%- if block_count == product_limit -%}{% break %}{%- endif -%}
+                  </div>
+                {% endfor %}
+              {%- else -%}
+                <div class="{{ grid_width_xs }} {{ grid_width }}" id="block-{{block.id}}">
+                {%- render 'card-product', product:product -%}
+                {%- assign block_count = block_count | plus:1 -%}
+                </div>
+              {%- endif -%}
+          {%- endcase -%}
+
+        {%- endfor -%}
+      </div>
+
+	</div>
+</section>
+
+{% javascript %}
+  var product_grid_carousel = jQuery('.products.carousel .row');
+  var product_grid_display = product_grid_carousel.data('slider-display');
+  if(product_grid_carousel.length > 0 ) {
+    if(product_grid_display == 'all' || ( product_grid_display == 'mobile' && parseInt(jQuery(window).width()) < 900) ) {
+      product_grid_carousel.not('.slick-initialized').slick({
+        slidesToShow: product_grid_carousel.data('slider-slides'),
+        slidesToScroll: 1,
+        arrows: product_grid_carousel.data('slider-arrows'),
+        dots: product_grid_carousel.data('slider-dots'),
+        infinite: false,
+        responsive: [
+          {
+            breakpoint: 768,
+            settings: {
+              slidesToShow: 1
+            }
+          }
+        ]
+      });
+    };
+  };
+{% endjavascript %}
+
+{% schema %}
+  {
+    "name": "Featured Products",
+    "settings": [
+      {
+        "type": "header",
+        "content": "Background"
+      },
+      {
+        "type": "checkbox",
+        "id": "fluid_section",
+        "label": "Borderless container",
+        "default": false
+      },
+      {
+        "type": "color",
+        "id": "color_bg",
+        "label": "Background color",
+        "default": "rgba(0,0,0,0)"
+      },
+      {
+        "type": "text",
+        "id": "anchor_id",
+        "label": "Section Anchor ID"
+      },
+      {
+        "type": "text",
+        "id": "class",
+        "label": "Custom class"
+      },
+      {
+        "type": "image_picker",
+        "id": "image",
+        "label": "Background Image (desktop)",
+        "info": " (optional) Retina:3200px X 1200px; Normal:1600px X 800px"
+      },
+      {
+        "type": "image_picker",
+        "id": "image_xs",
+        "label": "Background Image (mobile)",
+        "info": "(optional) Retina:2400px X 2400px; Normal:1200px X 1200px"
+      },
+      {
+        "type": "color",
+        "id": "offset_color",
+        "label": "Background offset color",
+        "default": "rgba(0,0,0,0)"
+      },
+      {
+        "type": "select",
+        "id": "offset_position",
+        "label": "Background offset position",
+        "default": "bottom",
+        "options": [
+          { "value": "top", "label": "Top" },
+          { "value": "bottom", "label": "Bottom" },
+          { "value": "left", "label": "Left" },
+          { "value": "right", "label": "Right" },
+          { "value": "center-v", "label": "Vertical Center " },
+          { "value": "center-h", "label": "Horizontal Center" }
+        ]
+      },
+      {
+        "type": "range",
+        "id": "offset_height",
+        "label": "Background offset height",
+        "min": 0,
+        "max": 100,
+        "step": 5,
+        "unit": "%",
+        "default": 50
+      },
+      {
+        "type": "header",
+        "content": "Header Content"
+      },
+      {
+        "type": "select",
+        "id": "alignment",
+        "label": "Alignment",
+        "default": "",
+        "options": [
+          { "value": "text-center", "label": "Center" },
+          { "value": "", "label": "Left" },
+          { "value": "text-right", "label": "Right" }
+        ]
+      },
+      {
+        "type": "text",
+        "id": "title",
+        "label": "Title"
+      },
+      {
+        "type": "select",
+        "id": "header_tag",
+        "label": "Title Tag Type",
+        "default": "h2",
+        "options": [ 
+		  { "value": "h1", "label": "h1" },
+          { "value": "h2", "label": "h2" },
+          { "value": "h3", "label": "h3" },
+          { "value": "h4", "label": "h4" }
+        ]
+      },
+      {
+        "type": "color",
+        "id": "color_title",
+        "label": "Title color",
+        "default": "rgba(0,0,0,0)"
+      },
+      {
+        "type": "richtext",
+        "id": "description",
+        "label": "Body"
+      },
+      {
+        "type": "color",
+        "id": "color_body",
+        "label": "Body color",
+        "default": "rgba(0,0,0,0)"
+      },
+      {
+        "type": "url",
+        "id": "cta_link",
+        "label": "Button Link",
+        "info": "Button will only show if a link is assigned"
+      },
+      {
+        "type": "text",
+        "id": "cta_label",
+        "label": "Button Label"
+      },
+      {
+         "type": "select",
+         "id": "cta_theme",
+		 "label": "Button Style",
+         "options": [
+            { "value": "btn-primary", "label": "Primary"},
+			{ "value": "btn-outline-primary", "label": "Primary Outline"},
+            { "value": "btn-secondary", "label": "Secondary"},
+			{ "value": "btn-outline-secondary", "label": "Secondary Outline"}
+         ],
+		 "default": "btn-primary"
+      },
+      {
+         "type": "select",
+         "id": "cta_size",
+		 "label": "Button Size",
+         "options": [
+            { "value": "", "label": "Normal"},
+			{ "value": "btn-lg", "label": "Large"},
+            { "value": "btn-sm", "label": "Small"}
+         ],
+         "default": ""
+      },
+      {
+        "type": "header",
+        "content": "Cards Layout"
+      },
+      {
+        "type": "select",
+        "id": "v_align",
+        "label": "Vertical align",
+        "default": "align-items-start",
+        "options": [
+          { "value": "align-items-start", "label": "Top" },
+          { "value": "align-items-center", "label": "Middle" },
+          { "value": "align-items-end", "label": "Bottom" }
+        ]
+	  },
+      {
+        "type": "select",
+        "id": "h_align",
+        "label": "Horizontal align",
+        "default": "justify-content-center",
+        "options": [
+          { "value": "justify-content-start", "label": "Left" },
+          { "value": "justify-content-center", "label": "Center" },
+          { "value": " justify-content-end", "label": "Right" }
+        ]
+	  },
+      {
+        "type": "range",
+        "id": "grid",
+        "label": "Per row (desktop)",
+        "min": 1,
+        "max": 6,
+        "step": 1,
+        "default": 2
+      },
+      {
+        "type": "range",
+        "id": "grid_xs",
+        "label": "Per row (mobile)",
+        "min": 1,
+        "max": 4,
+        "step": 1,
+        "default": 1
+      },
+      {
+        "type": "range",
+        "id": "rows",
+        "min": 1,
+        "max": 6,
+        "step": 1,
+        "label": "Product rows",
+        "default": 1
+      },
+      {
+        "type": "checkbox",
+        "id": "mobile_assets_first",
+        "label": "Display Images/Videos first on mobile",
+        "default": false
+      },
+      {
+        "type": "header",
+        "content": "Carousel"
+      },
+      {
+        "type": "select",
+        "id": "show_carousel",
+        "label": "Show Carousel",
+        "default": "",
+        "options": [
+          { "value": "", "label": "No" },
+          { "value": "all", "label": "Desktop + Mobile" },
+          { "value": " mobile", "label": "Mobile Only" }
+        ]
+	  },
+      {
+        "type": "range",
+        "id": "slides_to_show",
+        "label": "Slides to Show",
+        "min": 1,
+        "max": 4,
+        "step": 1,
+        "default": 2
+      },
+      {
+        "type": "checkbox",
+        "id": "carousel_arrows",
+        "label": "Show Arrows",
+        "default": true
+      },
+      {
+        "type": "checkbox",
+        "id": "carousel_dots",
+        "label": "Show Dots",
+        "default": false
+      }
+    ],
+   "blocks": [
+      {
+        "type": "product",
+        "name": "Product",
+        "settings": [
+          {
+            "type": "product",
+            "id": "product",
+            "label": "Product"
+          },
+          {
+            "type": "image_picker",
+            "id": "image",
+            "label": "Overwrite Image"
+          },
+          {
+            "type": "text",
+            "id": "title",
+            "label": "Overwrite Title"
+          },
+          {
+            "type": "url",
+            "id": "link",
+            "label": "Overwrite Link"
+          },
+          {
+            "type": "checkbox",
+            "id": "show_variants",
+            "label": "Show variants",
+            "default": false
+          }
+        ]
+      },
+      {
+        "type": "card",
+        "name": "Image Card",
+        "settings": [
+          {
+            "type": "range",
+            "id": "position",
+            "min": 1,
+            "max": 12,
+            "step": 1,
+            "label": "Grid Position",
+            "default": 1
+          },
+          {
+            "type": "image_picker",
+            "id": "image",
+            "label": "Image"
+          },
+          {
+            "type": "image_picker",
+            "id": "image_xs",
+            "label": "Image (Mobile)"
+          },
+          {
+            "type": "text",
+            "id": "title",
+            "label": "Title"
+          },
+          {
+            "type": "richtext",
+            "id": "body",
+            "label": "Description"
+          },
+          {
+            "type": "url",
+            "id": "link",
+            "label": "Button URL",
+            "info": "Optional"
+          },
+          {
+            "type": "text",
+            "id": "link_label",
+            "label": "Button Label",
+            "default": "Learn More"
+          },
+          {
+            "type": "select",
+            "id": "link_theme",
+            "label": "Button Style",
+            "options": [
+              { "value": "btn-primary", "label": "Primary"},
+              { "value": "btn-outline-primary", "label": "Primary Outline"},
+              { "value": "btn-secondary", "label": "Secondary"},
+              { "value": "btn-outline-secondary", "label": "Secondary Outline"}
+            ],
+            "default": "btn-outline-primary"
+          },
+          {
+            "type": "select",
+            "id": "link_size",
+            "label": "Button Size",
+            "options": [
+              { "value": "", "label": "Normal"},
+              { "value": "btn-lg", "label": "Large"},
+              { "value": "btn-sm", "label": "Small"}
+            ],
+            "default": "btn-lg"
+          }
+        ]
+      }
+    ],
+    "presets": [
+      {
+        "name": "Featured Products",
+        "category": "Product"
+      }
+    ]
+  }
+{% endschema %}

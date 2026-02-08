@@ -1,0 +1,117 @@
+{%- if template.name == 'product' -%}
+  {%- capture datalayer -%}
+    event: "view_item",
+    ecommerce: {
+      items: [{
+         item_name: "{{ product.title }}",
+         item_id: "{{ product.selected_or_first_available_variant.sku }}",
+         price: {{ product.price | money_without_currency }},
+         item_brand: "{{ product.vendor }}",
+         item_category: "{{ collection.title }}",
+         item_variant: "{{ product.selected_or_first_available_variant.title }}",
+         quantity: 1
+       }]
+     }
+  {%- endcapture -%}
+{%- elsif template.name == 'collection' -%}
+  {%- capture datalayer -%}
+    event: "view_item_list",
+    ecommerce: {
+      items: [
+	   {%- for product in collection -%}
+       {
+         item_name: "{{ product.title }}",
+         item_id: "{{ product.selected_or_first_available_variant.sku }}",
+         price: {{ product.price | money_without_currency }},
+         item_brand: "{{ product.vendor }}",
+         item_category: "{{ collection.title }}",
+         item_variant: "{{ product.selected_or_first_available_variant.title }}",
+         item_list_name: "{{ collection.title }}",
+         item_list_id: "{{ collection.handle }}",
+         index: {{ forloop.index }},
+         quantity: 1
+       }{%- unless forloop.last -%},{%- endunless -%}
+      {%- endfor -%}
+	  ]
+    }
+  {%- endcapture -%}
+{%- endif -%}
+
+<script>
+
+  function getUrlParam(name, url = window.location.href) {
+    name = name.replace(/[\[\]]/g, '\\$&');
+    var regex = new RegExp('[?&]' + name + '(=([^&#]*)|&|#|$)'),
+        results = regex.exec(url);
+    if (!results) return null;
+    if (!results[2]) return '';
+    return decodeURIComponent(results[2].replace(/\+/g, ' '));
+  }
+
+  function getUserId() {
+    var querystring = getUrlParam('user_id');
+    var session = sessionStorage.getItem('user_id');
+    var shopify = {{ customer.id | default:false }};
+    
+    if(querystring) {
+      sessionStorage.setItem('user_id', querystring);
+      return querystring;
+    }else if(session){ 
+      return session;
+    }else{
+      return shopify;
+    }
+  }
+
+  window.onload = function() {
+
+    var user_id = getUserId();
+
+    dataLayer.push({
+      event: 'page_view',
+      page_location: '{{ request.path }}',
+      page_title: '{{ page_title }}',
+      user_id: user_id
+    });
+
+    {% if datalayer != blank %}
+    dataLayer.push({ {{ datalayer }} });
+    {% endif %}
+
+    $('#AddToCartForm').submit(function( event ) {
+      var handle = $(this).find('input[name="handle"]').val();
+      var qty = $(this).find('input[name="quantity"]').val();
+      var variant_id = $(this).find('input[name="id"]').val();
+
+      jQuery.getJSON('/products/' + handle + '.js', function (product, textStatus) {
+
+        dataLayer.push({
+          event: 'add_to_cart',
+          ecommerce: {
+            items: [{
+              item_name: product.title, // Name or ID is required.
+              item_id: variant_id,
+              price: (parseFloat(product.price)  / 100 ).toFixed(2),
+              item_list_name: 'PDP',
+              quantity: qty
+            }]
+          }
+        });
+      }); //jQuery.getJSON
+
+    });
+    
+    $('form.cart').submit(function( event ) {
+      jQuery.getJSON('/cart.js', function(cart) {
+        var cart_items = [];
+        $(cart.items).each(function () {
+          cart_items.push( { 'item_name': this.title, 'item_id': this.sku, 'price': this.unit_price, 'quantity': this.quantity } );
+        });
+        let data = { event: "begin_checkout", ecommerce: { items: cart_items } };
+        dataLayer.push( data );
+      }); // jQuery.getJSON
+    });
+
+  };
+
+</script>

@@ -1,0 +1,80 @@
+{%- if variant -%}
+  {%- assign current_variant = variant -%}
+  {%- assign show_variants = true -%}
+{%- else -%}
+  {%- assign current_variant = product.selected_or_first_available_variant -%}
+  {%- assign show_variants = false -%}
+{%- endif -%}
+{%- assign has_override_image = false -%}
+
+{%- if current_variant.compare_at_price > product.price and current_variant.available -%}
+	{%- assign has_sale_class = 'sale' -%}
+    {%- if product.tags contains 'clearance' -%}{%- assign has_sale_class = 'clearance' -%}{%- endif -%}
+{%- else -%}
+	{%- assign has_sale_class = 'd-none' -%}
+{%- endif -%}
+
+{%- assign collection = collections[ product.metafields.global.primary-collection ] | default:collection -%}
+
+<div class="d-flex cart-item" id="product-{{product.id}}" data-variants="{{ product.variants.size }}">
+
+  <div class="item-image">
+    <img data-src="{{ product.featured_image | img_url:'200x' }}" width="200" height="200" class="img-fluid lazyload" />
+  </div>
+  <div class="item-body flex-fill text-start">
+    
+    <a href="{{ product.url }}?variant={{ variant.id }}"><h6 class="title">{{ product.title }}</h6></a>
+
+    {%- unless hide_description -%}
+   <div class="description">{{ product.metafields['card']['description'] }}</div>
+    {%- endunless -%}
+    
+    <button data-product-url="{{ product.url }}" class="btn btn-sm btn-outline-primary" data-product-id="{{ product.id }}" data-variant-id="{{ current_variant.id }}"{% if product.variants.size > 1 %} data-bs-toggle="modal" data-bs-target="#variantSelectModal-{{product.id}}"{% else %} add-to-cart{% endif %}>
+      {{ 'collections.product_card.add_to_cart' | t }}
+    </button>
+
+  </div>
+</div>
+
+{%- if product.variants.size > 1 -%}
+<!-- Modal -->
+<div class="modal fade product" id="variantSelectModal-{{product.id}}" tabindex="-1" aria-labelledby="variantSelectModalLabel" aria-hidden="true" data-product-id="{{ product.id }}" data-varaint-id="{{ current_variant.id }}">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">{{ product.title }}</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+
+        {%- if product.variants[0].title == 'Default Title' -%}
+        {%- assign hide_variant_select = true -%}
+        {%- endif -%}
+        <div class="variant-select mt-3">
+          <select name="id" id="ProductVariantSelect" class="form-control mb-3" variant-select>
+            {%- for variant in product.variants -%}
+            <option {% if variant.id == current_variant.id %} selected="selected"{% endif %} value="{{ variant.id }}">{{ variant.title | strip }}</option>
+            {%- endfor -%}
+          </select>
+        </div>
+
+        {%- if product.variants.size > 1 -%}
+        {% render 'product-options' for product.options as swatch, current_variant:current_variant %}
+        {%- endif -%}
+
+        <div id="product_price" class="mb-3">{% render 'product-price', variant:current_variant %}</div>
+
+        <button type="submit" class="btn btn-primary" data-variant-id="{{ variant.id }}" data-product-id="{{ product.id }}" add-to-cart>
+          <span>
+            {%- unless current_variant.available -%}
+            {{ 'products.product.sold_out' | t }}
+            {%- else -%}
+            {{ 'products.product.add_to_cart' | t }}
+            {%- endunless -%}
+          </span>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+{%- endif -%}

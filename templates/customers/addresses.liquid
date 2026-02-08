@@ -1,0 +1,57 @@
+{% paginate customer.addresses by 5 %}
+
+<section>
+  <div class="container">
+    
+    <div class="d-flex flex-column flex-md-row justify-content-between">
+      <div>
+        {% include 'breadcrumbs' %}
+        <h1>{{ 'customer.addresses.title' | t }}</h1>
+      </div>
+      <div>
+       <a href="#" class="btn btn-primary float-end" data-bs-toggle="modal" data-bs-target="#addAddress">{{ 'customer.addresses.add_new' | t }}</a>
+      </div>
+    </div>
+
+    <div class="row justify-content-start">
+      {% comment %}
+      List all customer addresses with a unique edit form.
+      Also add pagination in case they have a large number of addresses
+      {% endcomment %}
+      {% for address in customer.addresses %}
+      <div class="col-12 col-md-4 mb-3">
+
+        <div class="address-card card">
+          <div class="card-body">
+
+            {% if address == customer.default_address %}
+            <span class="badge  badge-secondary float-end">{{ 'customer.addresses.default' | t }}</span>
+            {% endif %}
+            <h5 class="card-title">Address</h5>
+
+            <p class="card-text">
+              {{ address | format_address }}
+            </p>
+
+            <a href="#" class="btn btn-outline-primary btn-sm card-link" data-form-id="{{ address.id }}" data-bs-toggle="modal" data-bs-target="#editAddress{{ address.id}}">{{ 'customer.addresses.edit' | t }}</a>
+            <a href="#" class="card-link" data-form-id="{{ address.id }}" data-confirm-message="{{ 'customer.addresses.delete_confirm' | t }}" onclick="Shopify.CustomerAddress.destroy({{ address.id }}); return false;">{{ 'customer.addresses.delete' | t }}</a>
+          </div>
+        </div>
+      	
+      </div>
+      {% endfor %}
+
+      {% if paginate.pages > 1 %}
+      {% render 'pagination', paginate:paginate %}
+      {% endif %}
+    </div>
+  </div>
+
+</section>
+
+{% endpaginate %}
+
+{% for address in customer.addresses %}
+{% render 'account-modal-address', action: 'edit', form_data: address %}
+{% endfor %}
+{% render 'account-modal-address', action: 'add', form_data: customer.new_address %}
