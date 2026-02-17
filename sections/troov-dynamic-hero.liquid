@@ -1,0 +1,410 @@
+{{ 'troov-dynamic-hero.css' | asset_url | stylesheet_tag }}
+
+{%- liquid
+  assign bg_color = section.settings.bg_color | default: '#0a0a0a'
+  assign text_color = section.settings.text_color | default: '#ffffff'
+  assign accent_color = section.settings.accent_color | default: '#8DC63F'
+  assign height_desktop = section.settings.height_desktop | default: '100vh'
+  assign height_mobile = section.settings.height_mobile | default: '100vh'
+  assign overlay_opacity = section.settings.overlay_opacity | default: 40
+  assign content_position = section.settings.content_position | default: 'left'
+  assign image_position = section.settings.image_position | default: 'right'
+-%}
+
+<section
+  class="troov-hero troov-hero--{{ content_position }} troov-hero--img-{{ image_position }}"
+  id="TroovHero-{{ section.id }}"
+  style="
+    --hero-bg: {{ bg_color }};
+    --hero-text: {{ text_color }};
+    --hero-accent: {{ accent_color }};
+    --hero-height-desktop: {{ height_desktop }};
+    --hero-height-mobile: {{ height_mobile }};
+    --hero-overlay-opacity: {{ overlay_opacity | divided_by: 100.0 }};
+  "
+>
+  {%- comment -%} Background image (full bleed) {%- endcomment -%}
+  {%- if section.settings.bg_image != blank -%}
+    <div class="troov-hero__bg">
+      <img
+        src="{{ section.settings.bg_image | image_url: width: 2400 }}"
+        alt="{{ section.settings.bg_image.alt | default: '' }}"
+        loading="eager"
+        fetchpriority="high"
+        width="{{ section.settings.bg_image.width }}"
+        height="{{ section.settings.bg_image.height }}"
+        class="troov-hero__bg-img"
+      >
+      <div class="troov-hero__bg-overlay"></div>
+    </div>
+  {%- endif -%}
+
+  {%- comment -%} Mobile background image (optional override) {%- endcomment -%}
+  {%- if section.settings.bg_image_mobile != blank -%}
+    <div class="troov-hero__bg troov-hero__bg--mobile">
+      <img
+        src="{{ section.settings.bg_image_mobile | image_url: width: 900 }}"
+        alt="{{ section.settings.bg_image_mobile.alt | default: '' }}"
+        loading="eager"
+        fetchpriority="high"
+        width="{{ section.settings.bg_image_mobile.width }}"
+        height="{{ section.settings.bg_image_mobile.height }}"
+        class="troov-hero__bg-img"
+      >
+      <div class="troov-hero__bg-overlay"></div>
+    </div>
+  {%- endif -%}
+
+  <div class="troov-hero__container">
+    <div class="troov-hero__grid">
+
+      {%- comment -%} Content side {%- endcomment -%}
+      <div class="troov-hero__content">
+
+        {%- comment -%} Badge {%- endcomment -%}
+        {%- if section.settings.badge_text != blank -%}
+          <div class="troov-hero__badge">
+            {%- if section.settings.show_stars -%}
+              <div class="troov-hero__stars">
+                {%- for i in (1..5) -%}
+                  <svg viewBox="0 0 20 20"><path d="M10 1l2.39 4.84L17.3 6.7l-3.65 3.56.86 5.03L10 13l-4.51 2.29.86-5.03L2.7 6.7l4.91-.86z"/></svg>
+                {%- endfor -%}
+              </div>
+            {%- endif -%}
+            <span class="troov-hero__badge-text">{{ section.settings.badge_text }}</span>
+          </div>
+        {%- endif -%}
+
+        {%- comment -%} Heading {%- endcomment -%}
+        {%- if section.settings.heading != blank -%}
+          <h1 class="troov-hero__heading">{{ section.settings.heading }}</h1>
+        {%- endif -%}
+
+        {%- comment -%} Body text {%- endcomment -%}
+        {%- if section.settings.body_text != blank -%}
+          <div class="troov-hero__body">{{ section.settings.body_text }}</div>
+        {%- endif -%}
+
+        {%- comment -%} USP pills {%- endcomment -%}
+        {%- assign usps = section.blocks | where: "type", "usp" -%}
+        {%- if usps.size > 0 -%}
+          <div class="troov-hero__usps">
+            {%- for block in usps -%}
+              <div class="troov-hero__usp" {{ block.shopify_attributes }}>
+                {%- if block.settings.icon != blank -%}
+                  <img
+                    src="{{ block.settings.icon | image_url: width: 40 }}"
+                    alt=""
+                    width="20"
+                    height="20"
+                    loading="eager"
+                    class="troov-hero__usp-icon"
+                  >
+                {%- endif -%}
+                <span>{{ block.settings.text }}</span>
+              </div>
+            {%- endfor -%}
+          </div>
+        {%- endif -%}
+
+        {%- comment -%} Buttons {%- endcomment -%}
+        {%- assign buttons = section.blocks | where: "type", "button" -%}
+        {%- if buttons.size > 0 -%}
+          <div class="troov-hero__buttons">
+            {%- for block in buttons -%}
+              <a
+                href="{{ block.settings.link | default: '#' }}"
+                class="troov-hero__btn troov-hero__btn--{{ block.settings.style | default: 'primary' }}"
+                {{ block.shopify_attributes }}
+              >
+                {{ block.settings.text }}
+                {%- if block.settings.show_arrow -%}
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+                {%- endif -%}
+              </a>
+            {%- endfor -%}
+          </div>
+        {%- endif -%}
+
+        {%- comment -%} Trust line {%- endcomment -%}
+        {%- if section.settings.trust_text != blank -%}
+          <div class="troov-hero__trust">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+            <span>{{ section.settings.trust_text }}</span>
+          </div>
+        {%- endif -%}
+
+      </div>
+
+      {%- comment -%} Image / product side {%- endcomment -%}
+      <div class="troov-hero__media">
+        {%- if section.settings.hero_image != blank -%}
+          <img
+            src="{{ section.settings.hero_image | image_url: width: 1200 }}"
+            alt="{{ section.settings.hero_image.alt | default: 'Troov product' }}"
+            loading="eager"
+            fetchpriority="high"
+            width="{{ section.settings.hero_image.width }}"
+            height="{{ section.settings.hero_image.height }}"
+            class="troov-hero__product-img"
+          >
+        {%- endif -%}
+
+        {%- comment -%} Floating accent elements (optional) {%- endcomment -%}
+        {%- if section.settings.floating_image != blank -%}
+          <img
+            src="{{ section.settings.floating_image | image_url: width: 400 }}"
+            alt=""
+            loading="eager"
+            class="troov-hero__floating-img"
+          >
+        {%- endif -%}
+      </div>
+
+    </div>
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "Dynamic Hero",
+  "tag": "section",
+  "class": "troov-dynamic-hero-wrapper",
+  "settings": [
+    {
+      "type": "header",
+      "content": "Layout"
+    },
+    {
+      "type": "select",
+      "id": "height_desktop",
+      "label": "Desktop height",
+      "options": [
+        { "value": "auto", "label": "Auto (content-based)" },
+        { "value": "50vh", "label": "50% screen" },
+        { "value": "60vh", "label": "60% screen" },
+        { "value": "70vh", "label": "70% screen" },
+        { "value": "80vh", "label": "80% screen" },
+        { "value": "90vh", "label": "90% screen" },
+        { "value": "100vh", "label": "Full screen" }
+      ],
+      "default": "auto"
+    },
+    {
+      "type": "select",
+      "id": "height_mobile",
+      "label": "Mobile height",
+      "options": [
+        { "value": "auto", "label": "Auto (content-based)" },
+        { "value": "50vh", "label": "50% screen" },
+        { "value": "60vh", "label": "60% screen" },
+        { "value": "70vh", "label": "70% screen" },
+        { "value": "80vh", "label": "80% screen" },
+        { "value": "90vh", "label": "90% screen" },
+        { "value": "100vh", "label": "Full screen" }
+      ],
+      "default": "auto"
+    },
+    {
+      "type": "select",
+      "id": "content_position",
+      "label": "Content position",
+      "options": [
+        { "value": "left", "label": "Left" },
+        { "value": "center", "label": "Center" },
+        { "value": "right", "label": "Right" }
+      ],
+      "default": "left"
+    },
+    {
+      "type": "select",
+      "id": "image_position",
+      "label": "Product image position",
+      "options": [
+        { "value": "right", "label": "Right" },
+        { "value": "left", "label": "Left" },
+        { "value": "behind", "label": "Behind content" }
+      ],
+      "default": "right"
+    },
+    {
+      "type": "header",
+      "content": "Colors"
+    },
+    {
+      "type": "color",
+      "id": "bg_color",
+      "label": "Background color",
+      "default": "#0a0a0a"
+    },
+    {
+      "type": "color",
+      "id": "text_color",
+      "label": "Text color",
+      "default": "#ffffff"
+    },
+    {
+      "type": "color",
+      "id": "accent_color",
+      "label": "Accent color",
+      "default": "#8DC63F"
+    },
+    {
+      "type": "header",
+      "content": "Background"
+    },
+    {
+      "type": "image_picker",
+      "id": "bg_image",
+      "label": "Background image (desktop)"
+    },
+    {
+      "type": "image_picker",
+      "id": "bg_image_mobile",
+      "label": "Background image (mobile)",
+      "info": "Optional. Uses desktop image if empty."
+    },
+    {
+      "type": "range",
+      "id": "overlay_opacity",
+      "label": "Image overlay darkness",
+      "min": 0,
+      "max": 90,
+      "step": 5,
+      "default": 40,
+      "unit": "%"
+    },
+    {
+      "type": "header",
+      "content": "Content"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_stars",
+      "label": "Show star rating",
+      "default": true
+    },
+    {
+      "type": "text",
+      "id": "badge_text",
+      "label": "Badge text",
+      "default": "30,000+ healthy fans"
+    },
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "Heading",
+      "default": "Fuel Your Best Self"
+    },
+    {
+      "type": "richtext",
+      "id": "body_text",
+      "label": "Body text",
+      "default": "<p>Ditch the sugar-loaded energy drinks. <strong>A scoop of Troov before your workout</strong> is the clean, natural way to power through without the crash.</p>"
+    },
+    {
+      "type": "text",
+      "id": "trust_text",
+      "label": "Trust line",
+      "default": "USA-Made. 90-Day Guarantee."
+    },
+    {
+      "type": "header",
+      "content": "Product image"
+    },
+    {
+      "type": "image_picker",
+      "id": "hero_image",
+      "label": "Product / hero image"
+    },
+    {
+      "type": "image_picker",
+      "id": "floating_image",
+      "label": "Floating accent image",
+      "info": "Small decorative image that floats near the product"
+    }
+  ],
+  "blocks": [
+    {
+      "type": "button",
+      "name": "Button",
+      "limit": 2,
+      "settings": [
+        {
+          "type": "text",
+          "id": "text",
+          "label": "Button text",
+          "default": "Get Troov Here"
+        },
+        {
+          "type": "url",
+          "id": "link",
+          "label": "Button link"
+        },
+        {
+          "type": "select",
+          "id": "style",
+          "label": "Button style",
+          "options": [
+            { "value": "primary", "label": "Primary (accent fill)" },
+            { "value": "secondary", "label": "Secondary (outline)" }
+          ],
+          "default": "primary"
+        },
+        {
+          "type": "checkbox",
+          "id": "show_arrow",
+          "label": "Show arrow icon",
+          "default": true
+        }
+      ]
+    },
+    {
+      "type": "usp",
+      "name": "USP pill",
+      "limit": 4,
+      "settings": [
+        {
+          "type": "image_picker",
+          "id": "icon",
+          "label": "Icon image",
+          "info": "Small icon (40x40px recommended)"
+        },
+        {
+          "type": "text",
+          "id": "text",
+          "label": "USP text",
+          "default": "Zero Sugar"
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "Dynamic Hero",
+      "blocks": [
+        {
+          "type": "usp",
+          "settings": { "text": "Zero Sugar" }
+        },
+        {
+          "type": "usp",
+          "settings": { "text": "Clean Energy" }
+        },
+        {
+          "type": "usp",
+          "settings": { "text": "No Crash" }
+        },
+        {
+          "type": "button",
+          "settings": {
+            "text": "Get Troov Here",
+            "style": "primary",
+            "show_arrow": true
+          }
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}

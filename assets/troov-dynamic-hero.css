@@ -1,0 +1,483 @@
+/* ============================================
+   Troov Dynamic Hero Section
+   ============================================ */
+
+@import url('https://api.fontshare.com/v2/css?f[]=panchang@700&f[]=bevellier@500,500i&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600;1,700&display=swap');
+
+/* ---- Section ---- */
+.troov-hero {
+  position: relative;
+  width: 100%;
+  min-height: var(--hero-height-desktop, auto);
+  background-color: var(--hero-bg, #0a0a0a);
+  color: var(--hero-text, #ffffff);
+  font-family: 'DM Sans', sans-serif;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+}
+
+/* ---- Background image ---- */
+.troov-hero__bg {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+}
+
+.troov-hero__bg--mobile {
+  display: none;
+}
+
+.troov-hero__bg-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.troov-hero__bg-overlay {
+  position: absolute;
+  inset: 0;
+  background: var(--hero-bg, #0a0a0a);
+  opacity: var(--hero-overlay-opacity, 0.4);
+}
+
+/* ---- Container ---- */
+.troov-hero__container {
+  position: relative;
+  z-index: 2;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 100px 40px 80px;
+  width: 100%;
+}
+
+/* ---- Grid ---- */
+.troov-hero__grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 60px;
+  align-items: center;
+}
+
+/* Content position: center (single column) */
+.troov-hero--center .troov-hero__grid {
+  grid-template-columns: 1fr;
+  text-align: center;
+  max-width: 720px;
+  margin: 0 auto;
+}
+
+.troov-hero--center .troov-hero__content {
+  align-items: center;
+}
+
+.troov-hero--center .troov-hero__usps {
+  justify-content: center;
+}
+
+.troov-hero--center .troov-hero__buttons {
+  justify-content: center;
+}
+
+.troov-hero--center .troov-hero__trust {
+  justify-content: center;
+}
+
+.troov-hero--center .troov-hero__media {
+  display: none;
+}
+
+/* Content position: right (reverse grid) */
+.troov-hero--right .troov-hero__content {
+  order: 2;
+}
+
+.troov-hero--right .troov-hero__media {
+  order: 1;
+}
+
+/* Image behind content */
+.troov-hero--img-behind .troov-hero__media {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  width: 55%;
+  height: 100%;
+  z-index: 0;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+}
+
+.troov-hero--img-behind .troov-hero__grid {
+  grid-template-columns: 1fr;
+}
+
+.troov-hero--img-behind .troov-hero__product-img {
+  max-height: 100%;
+  width: auto;
+  object-fit: contain;
+}
+
+/* ---- Content ---- */
+.troov-hero__content {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 24px;
+}
+
+/* ---- Badge ---- */
+.troov-hero__badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.troov-hero__stars {
+  display: flex;
+  gap: 3px;
+}
+
+.troov-hero__stars svg {
+  width: 18px;
+  height: 18px;
+  fill: var(--hero-accent, #8DC63F);
+}
+
+.troov-hero__badge-text {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--hero-text, #ffffff);
+  opacity: 0.8;
+  letter-spacing: 0.3px;
+}
+
+/* ---- Heading ---- */
+.troov-hero__heading {
+  font-family: 'Bevellier', sans-serif;
+  font-weight: 500;
+  font-style: italic;
+  font-size: clamp(36px, 5vw, 60px);
+  line-height: 0.95;
+  color: var(--hero-text, #ffffff);
+  text-transform: uppercase;
+  margin: 0;
+  max-width: 560px;
+}
+
+/* ---- Body ---- */
+.troov-hero__body {
+  font-size: 17px;
+  line-height: 1.65;
+  color: var(--hero-text, #ffffff);
+  opacity: 0.85;
+  max-width: 480px;
+}
+
+.troov-hero__body p {
+  margin: 0;
+}
+
+.troov-hero__body strong,
+.troov-hero__body b {
+  font-weight: 700;
+  opacity: 1;
+  color: var(--hero-text, #ffffff);
+}
+
+/* ---- USP pills ---- */
+.troov-hero__usps {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.troov-hero__usp {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--hero-text, #ffffff);
+  letter-spacing: 0.2px;
+}
+
+.troov-hero__usp-icon {
+  width: 20px;
+  height: 20px;
+  object-fit: contain;
+  flex-shrink: 0;
+}
+
+/* If no icon uploaded, show accent dot */
+.troov-hero__usp:not(:has(.troov-hero__usp-icon))::before {
+  content: '';
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--hero-accent, #8DC63F);
+  flex-shrink: 0;
+}
+
+/* ---- Buttons ---- */
+.troov-hero__buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  padding-top: 4px;
+}
+
+.troov-hero__btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  text-decoration: none;
+  padding: 18px 44px;
+  border-radius: 100px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border: 2px solid transparent;
+  white-space: nowrap;
+}
+
+.troov-hero__btn svg {
+  width: 16px;
+  height: 16px;
+  transition: transform 0.3s ease;
+  flex-shrink: 0;
+}
+
+.troov-hero__btn:hover svg {
+  transform: translateX(4px);
+}
+
+/* Primary button */
+.troov-hero__btn--primary {
+  background: var(--hero-accent, #8DC63F);
+  color: #0a0a0a;
+  border-color: var(--hero-accent, #8DC63F);
+}
+
+.troov-hero__btn--primary:hover {
+  background: transparent;
+  color: var(--hero-accent, #8DC63F);
+  border-color: var(--hero-accent, #8DC63F);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 30px rgba(141, 198, 63, 0.25);
+}
+
+/* Secondary button */
+.troov-hero__btn--secondary {
+  background: transparent;
+  color: var(--hero-text, #ffffff);
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+.troov-hero__btn--secondary:hover {
+  background: var(--hero-text, #ffffff);
+  color: var(--hero-bg, #0a0a0a);
+  border-color: var(--hero-text, #ffffff);
+  transform: translateY(-2px);
+}
+
+/* ---- Trust line ---- */
+.troov-hero__trust {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--hero-text, #ffffff);
+  opacity: 0.6;
+  letter-spacing: 0.3px;
+}
+
+.troov-hero__trust svg {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+  opacity: 0.7;
+}
+
+/* ---- Media / product side ---- */
+.troov-hero__media {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.troov-hero__product-img {
+  max-width: 100%;
+  height: auto;
+  display: block;
+  object-fit: contain;
+  max-height: 560px;
+  position: relative;
+  z-index: 1;
+}
+
+/* ---- Floating accent image ---- */
+.troov-hero__floating-img {
+  position: absolute;
+  width: 120px;
+  height: auto;
+  top: -10%;
+  right: 5%;
+  z-index: 2;
+  animation: troov-float 4s ease-in-out infinite;
+}
+
+@keyframes troov-float {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  50% { transform: translateY(-12px) rotate(3deg); }
+}
+
+/* ============================================
+   MOBILE (max-width: 768px)
+   ============================================ */
+@media (max-width: 768px) {
+  .troov-hero {
+    min-height: var(--hero-height-mobile, auto);
+  }
+
+  .troov-hero__container {
+    padding: 80px 24px 60px;
+  }
+
+  .troov-hero__grid {
+    grid-template-columns: 1fr;
+    gap: 40px;
+    text-align: center;
+  }
+
+  .troov-hero__content {
+    align-items: center;
+    order: 1;
+  }
+
+  .troov-hero__media {
+    order: 2;
+  }
+
+  /* Show mobile bg, hide desktop bg */
+  .troov-hero__bg--mobile ~ .troov-hero__bg:not(.troov-hero__bg--mobile) {
+    display: none;
+  }
+
+  .troov-hero__bg--mobile {
+    display: block;
+  }
+
+  /* Reset any right/left overrides */
+  .troov-hero--right .troov-hero__content,
+  .troov-hero--right .troov-hero__media {
+    order: unset;
+  }
+
+  .troov-hero__content {
+    order: 1 !important;
+  }
+
+  .troov-hero__media {
+    order: 2 !important;
+  }
+
+  /* Behind image on mobile */
+  .troov-hero--img-behind .troov-hero__media {
+    position: relative;
+    width: 100%;
+    height: auto;
+  }
+
+  /* Badge */
+  .troov-hero__stars svg {
+    width: 14px;
+    height: 14px;
+  }
+
+  .troov-hero__badge-text {
+    font-size: 12px;
+  }
+
+  /* Heading */
+  .troov-hero__heading {
+    font-size: clamp(32px, 9vw, 44px);
+    max-width: 100%;
+  }
+
+  /* Body */
+  .troov-hero__body {
+    font-size: 15px;
+    max-width: 100%;
+  }
+
+  /* USPs */
+  .troov-hero__usps {
+    justify-content: center;
+    gap: 12px;
+  }
+
+  .troov-hero__usp {
+    font-size: 13px;
+  }
+
+  /* Buttons */
+  .troov-hero__buttons {
+    flex-direction: column;
+    width: 100%;
+    justify-content: center;
+  }
+
+  .troov-hero__btn {
+    width: 100%;
+    padding: 18px 32px;
+  }
+
+  .troov-hero__btn:hover {
+    transform: none;
+    box-shadow: none;
+  }
+
+  /* Trust */
+  .troov-hero__trust {
+    justify-content: center;
+  }
+
+  /* Product image */
+  .troov-hero__product-img {
+    max-height: 360px;
+  }
+
+  .troov-hero__floating-img {
+    width: 80px;
+    top: -5%;
+    right: 0;
+  }
+}
+
+/* ============================================
+   Small mobile (max-width: 390px)
+   ============================================ */
+@media (max-width: 390px) {
+  .troov-hero__container {
+    padding: 72px 20px 48px;
+  }
+
+  .troov-hero__heading {
+    font-size: 32px;
+  }
+
+  .troov-hero__body {
+    font-size: 14px;
+  }
+}
