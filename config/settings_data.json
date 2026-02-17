@@ -1898,10 +1898,67 @@
           "cta_text": "Try Troov Today",
           "cta_url": "shopify://products/energy-drink-powder"
         }
+      },
+      "troov_dynamic_hero_mgRAr8": {
+        "type": "troov-dynamic-hero",
+        "blocks": {
+          "usp_wRn8Hh": {
+            "type": "usp",
+            "settings": {
+              "text": "Zero Sugar"
+            }
+          },
+          "usp_wTRdNF": {
+            "type": "usp",
+            "settings": {
+              "text": "Clean Energy"
+            }
+          },
+          "usp_CgMKwn": {
+            "type": "usp",
+            "settings": {
+              "text": "No Crash"
+            }
+          },
+          "button_xRhpwY": {
+            "type": "button",
+            "settings": {
+              "text": "Get Troov Here",
+              "link": "",
+              "style": "primary",
+              "show_arrow": true
+            }
+          }
+        },
+        "block_order": [
+          "usp_wRn8Hh",
+          "usp_wTRdNF",
+          "usp_CgMKwn",
+          "button_xRhpwY"
+        ],
+        "name": "Dynamic Hero",
+        "settings": {
+          "height_desktop": "auto",
+          "height_mobile": "60vh",
+          "content_position": "left",
+          "image_position": "right",
+          "bg_color": "#ffffff",
+          "text_color": "#333333",
+          "accent_color": "#8DC63F",
+          "overlay_opacity": 40,
+          "show_stars": true,
+          "badge_text": "30,000+ healthy fans",
+          "heading": "Fuel Your Best Self",
+          "body_text": "<p>Ditch the sugar-loaded energy drinks. <strong>A scoop of Troov before your workout</strong> is the clean, natural way to power through without the crash.</p>",
+          "trust_text": "USA-Made. 90-Day Guarantee.",
+          "hero_image": "shopify://shop_images/troov-12oz-Rendering-Front-CranberryGuava-240629.jpg",
+          "floating_image": "shopify://shop_images/icon_leaf_energy_green.png"
+        }
       }
     },
     "content_for_index": [
       "multicolumn_TegNkM",
+      "troov_dynamic_hero_mgRAr8",
       "1647476018e37fe845",
       "troov_video_reviews_GEpNgf",
       "multicolumn_WjKp3p",
