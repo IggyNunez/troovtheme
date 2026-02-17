@@ -3,7 +3,7 @@
    ============================================ */
 
 /* Fonts */
-@import url('https://api.fontshare.com/v2/css?f[]=panchang@700&f[]=bevellier@500,500i&display=swap');
+@import url('https://api.fontshare.com/v2/css?f[]=panchang@700&f[]=bevellier@400,500,500i,700&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600;1,700&display=swap');
 
 .video-reviews-section {
@@ -73,7 +73,7 @@
 }
 
 .video-reviews-title {
-  font-family: Bevellier-Medium, Helvetic Neue, Helvetica, san-serif;
+  font-family: 'Bevellier-Medium', 'Helvetica Neue', Helvetica, sans-serif;
   font-weight: 500;
   font-style: italic;
   font-size: 52px;
