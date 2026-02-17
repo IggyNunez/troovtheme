@@ -1945,13 +1945,14 @@
           "bg_color": "#ffffff",
           "text_color": "#333333",
           "accent_color": "#8DC63F",
-          "overlay_opacity": 40,
+          "bg_image": "shopify://shop_images/Troov_Powder_Shopify_Mobile_best_2400_x_3200_px_9.png",
+          "overlay_opacity": 75,
           "show_stars": true,
           "badge_text": "30,000+ healthy fans",
           "heading": "Fuel Your Best Self",
           "body_text": "<p>Ditch the sugar-loaded energy drinks. <strong>A scoop of Troov before your workout</strong> is the clean, natural way to power through without the crash.</p>",
           "trust_text": "USA-Made. 90-Day Guarantee.",
-          "hero_image": "shopify://shop_images/troov-12oz-Rendering-Front-CranberryGuava-240629.jpg",
+          "hero_image": "shopify://shop_images/troov-12oz-Rendering-Front-CranberryGuava-240629.png",
           "floating_image": "shopify://shop_images/icon_leaf_energy_green.png"
         }
       }
@@ -1959,8 +1960,8 @@
     "content_for_index": [
       "multicolumn_TegNkM",
       "troov_dynamic_hero_mgRAr8",
-      "1647476018e37fe845",
       "troov_video_reviews_GEpNgf",
+      "1647476018e37fe845",
       "multicolumn_WjKp3p",
       "1646182960bfcb0892",
       "1646158216e41cf155",
