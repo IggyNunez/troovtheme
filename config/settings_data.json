@@ -1854,30 +1854,40 @@
           "video_chKzpU": {
             "type": "video",
             "settings": {
-              "video_url": "",
+              "video_url": "https://cdn.shopify.com/videos/c/o/v/77190cbed63748919b59d43d64ffe952.mp4",
               "duration": "1:12",
-              "quote": "\"I replaced my energy drinks with Troov and never looked back.\"",
+              "quote": "",
               "reviewer_name": "@reviewer_two",
-              "verified": true
-            }
-          },
-          "video_CymAyH": {
-            "type": "video",
-            "settings": {
-              "video_url": "",
-              "duration": "0:58",
-              "quote": "\"Clean energy that actually tastes amazing. Total game changer!\"",
-              "reviewer_name": "@reviewer_three",
               "verified": true
             }
           },
           "video_WQqXyX": {
             "type": "video",
             "settings": {
-              "video_url": "",
+              "video_url": "https://cdn.shopify.com/videos/c/o/v/389266ef924c4d4abeb2e7301188ca68.mp4",
               "duration": "0:32",
-              "quote": "\"Smooth energy all day — I use it for work and workouts.\"",
+              "quote": "",
               "reviewer_name": "@reviewer_four",
+              "verified": true
+            }
+          },
+          "video_zDtLTh": {
+            "type": "video",
+            "settings": {
+              "video_url": "",
+              "duration": "0:45",
+              "quote": "\"Best pre-workout I've ever tried — no crash, no jitters.\"",
+              "reviewer_name": "@reviewer",
+              "verified": true
+            }
+          },
+          "video_CymAyH": {
+            "type": "video",
+            "settings": {
+              "video_url": "https://cdn.shopify.com/videos/c/o/v/419a835ef0cd42c0b98e3eb65df13ea3.mp4",
+              "duration": "0:58",
+              "quote": "",
+              "reviewer_name": "@reviewer_three",
               "verified": true
             }
           }
@@ -1885,8 +1895,9 @@
         "block_order": [
           "video_pABWa8",
           "video_chKzpU",
-          "video_CymAyH",
-          "video_WQqXyX"
+          "video_WQqXyX",
+          "video_zDtLTh",
+          "video_CymAyH"
         ],
         "name": "Video Reviews",
         "settings": {
