@@ -1,0 +1,601 @@
+/* ============================================
+   Troov Video Reviews Section
+   ============================================ */
+
+/* Fonts */
+@import url('https://api.fontshare.com/v2/css?f[]=panchang@700&f[]=bevellier@500,500i&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600;1,700&display=swap');
+
+.video-reviews-section {
+  width: 100%;
+  padding: 80px 0 100px;
+  background: #ffffff;
+  font-family: 'DM Sans', sans-serif;
+  overflow: hidden;
+}
+
+.video-reviews-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 40px;
+}
+
+/* ---- Header ---- */
+.video-reviews-header {
+  text-align: center;
+  margin-bottom: 56px;
+}
+
+.video-reviews-section .section-divider {
+  width: 60px;
+  height: 4px;
+  background: #8DC63F;
+  border-radius: 2px;
+  margin: 0 auto 24px;
+}
+
+.video-reviews-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.vr-stars {
+  display: flex;
+  gap: 3px;
+}
+
+.vr-stars svg {
+  width: 18px;
+  height: 18px;
+  fill: #8DC63F;
+}
+
+.vr-badge-text {
+  font-size: 14px;
+  font-weight: 600;
+  color: #999;
+  letter-spacing: 0.5px;
+}
+
+.video-reviews-label {
+  font-family: 'Panchang', sans-serif;
+  font-weight: 700;
+  font-size: 20px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: transparent;
+  -webkit-text-stroke: 1.5px #000000;
+  text-stroke: 1.5px #000000;
+  margin-bottom: 8px;
+  line-height: 1.3;
+}
+
+.video-reviews-title {
+  font-family: 'Bevellier', sans-serif;
+  font-weight: 500;
+  font-style: italic;
+  font-size: 52px;
+  line-height: 0.95;
+  color: #000000;
+  text-transform: uppercase;
+  margin-bottom: 18px;
+}
+
+.video-reviews-subtitle {
+  font-size: 16px;
+  color: #999;
+  line-height: 1.6;
+  max-width: 480px;
+  margin: 0 auto;
+}
+
+/* ---- Carousel ---- */
+.carousel-wrapper {
+  position: relative;
+}
+
+.video-carousel {
+  display: flex;
+  gap: 24px;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  padding: 8px 0;
+}
+
+.video-carousel::-webkit-scrollbar {
+  display: none;
+}
+
+/* ---- Video Card ---- */
+.video-card {
+  flex: 0 0 calc((100% - 72px) / 3);
+  min-width: 300px;
+  scroll-snap-align: start;
+  position: relative;
+  border-radius: 16px;
+  overflow: hidden;
+  aspect-ratio: 9 / 14;
+  background: #f5f5f5;
+  cursor: pointer;
+  transition: transform 0.4s ease, box-shadow 0.4s ease;
+  border: 1px solid #eee;
+}
+
+.video-card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
+}
+
+/* Video & poster fill card */
+.video-card__video,
+.video-card__poster {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+/* ---- Thumbnail placeholder ---- */
+.video-thumbnail {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  background: #f8f8f8;
+}
+
+.video-person-placeholder {
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  background: #eee;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.video-person-placeholder svg {
+  width: 40px;
+  height: 40px;
+}
+
+.video-placeholder-label {
+  font-size: 11px;
+  color: #bbb;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  font-weight: 600;
+}
+
+/* ---- Play button ---- */
+.play-button {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.95);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.12);
+  transition: transform 0.3s ease, opacity 0.3s ease;
+  z-index: 3;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+}
+
+.video-card:hover .play-button {
+  transform: translate(-50%, -50%) scale(1.1);
+}
+
+.video-card.is-playing .play-button {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.video-card.is-playing:hover .play-button {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translate(-50%, -50%) scale(1);
+}
+
+.play-button svg {
+  width: 22px;
+  height: 22px;
+  fill: #0a0a0a;
+  margin-left: 3px;
+}
+
+/* ---- Quote overlay ---- */
+.video-quote {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 80px 20px 24px;
+  background: linear-gradient(180deg, transparent 0%, rgba(0, 0, 0, 0.75) 100%);
+  z-index: 2;
+}
+
+.video-quote-text {
+  margin-bottom: 10px;
+}
+
+.video-quote-highlight {
+  display: inline;
+  background: #8DC63F;
+  color: #0a0a0a;
+  padding: 3px 10px;
+  border-radius: 4px;
+  font-weight: 700;
+  font-size: 14px;
+  line-height: 2;
+  -webkit-box-decoration-break: clone;
+  box-decoration-break: clone;
+}
+
+.video-reviewer {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.reviewer-avatar {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.2);
+  border: 1.5px solid rgba(255, 255, 255, 0.3);
+  flex-shrink: 0;
+}
+
+.reviewer-avatar--img {
+  object-fit: cover;
+  background: transparent;
+}
+
+.reviewer-name {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.7);
+  font-weight: 500;
+}
+
+.reviewer-verified {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  color: #8DC63F;
+  font-weight: 700;
+}
+
+.reviewer-verified svg {
+  width: 12px;
+  height: 12px;
+  fill: #8DC63F;
+}
+
+/* ---- Duration badge ---- */
+.video-duration {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  background: rgba(0, 0, 0, 0.5);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+  border-radius: 6px;
+  padding: 4px 10px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #fff;
+  z-index: 3;
+}
+
+/* ---- Arrow buttons ---- */
+.carousel-arrow {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: #ffffff;
+  border: 1px solid #eee;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 10;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+  transition: all 0.3s ease;
+  padding: 0;
+}
+
+.carousel-arrow:hover {
+  background: #8DC63F;
+  border-color: #8DC63F;
+}
+
+.carousel-arrow svg {
+  width: 20px;
+  height: 20px;
+  stroke: #0a0a0a;
+  fill: none;
+  stroke-width: 2.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.carousel-arrow--left {
+  left: -24px;
+}
+
+.carousel-arrow--right {
+  right: -24px;
+}
+
+.carousel-arrow.hidden {
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* ---- Dots ---- */
+.carousel-dots {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 32px;
+}
+
+.carousel-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #ddd;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border: none;
+  padding: 0;
+}
+
+.carousel-dot.active {
+  background: #8DC63F;
+  width: 28px;
+  border-radius: 4px;
+}
+
+/* ---- CTA ---- */
+.video-reviews-footer {
+  text-align: center;
+  margin-top: 48px;
+}
+
+.video-reviews-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  background: #0a0a0a;
+  color: #ffffff;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  padding: 18px 44px;
+  border-radius: 100px;
+  border: none;
+  cursor: pointer;
+  text-decoration: none;
+  transition: all 0.3s ease;
+}
+
+.video-reviews-cta:hover {
+  background: #8DC63F;
+  color: #0a0a0a;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 30px rgba(141, 198, 63, 0.3);
+}
+
+.video-reviews-cta svg {
+  width: 16px;
+  height: 16px;
+  transition: transform 0.3s ease;
+}
+
+.video-reviews-cta:hover svg {
+  transform: translateX(4px);
+}
+
+/* ============================================
+   Mobile Responsive (max-width: 768px)
+   ============================================ */
+@media (max-width: 768px) {
+  .video-reviews-section {
+    padding: 48px 0 60px;
+  }
+
+  .video-reviews-container {
+    padding: 0;
+  }
+
+  .video-reviews-header {
+    margin-bottom: 32px;
+    padding: 0 24px;
+  }
+
+  .video-reviews-section .section-divider {
+    width: 40px;
+    height: 3px;
+    margin-bottom: 18px;
+  }
+
+  .video-reviews-badge {
+    gap: 6px;
+    margin-bottom: 12px;
+  }
+
+  .vr-stars {
+    gap: 2px;
+  }
+
+  .vr-stars svg {
+    width: 14px;
+    height: 14px;
+  }
+
+  .vr-badge-text {
+    font-size: 12px;
+    letter-spacing: 0.3px;
+  }
+
+  .video-reviews-label {
+    font-size: 14px;
+    letter-spacing: 1.5px;
+    -webkit-text-stroke: 1.2px #000;
+    text-stroke: 1.2px #000;
+  }
+
+  .video-reviews-title {
+    font-size: 36px;
+    margin-bottom: 12px;
+  }
+
+  .video-reviews-subtitle {
+    font-size: 14px;
+  }
+
+  /* Carousel mobile */
+  .video-carousel {
+    gap: 16px;
+    padding: 0 24px;
+  }
+
+  .video-card {
+    flex: 0 0 280px;
+    min-width: 280px;
+    scroll-snap-align: center;
+  }
+
+  .video-card:hover {
+    transform: none;
+    box-shadow: none;
+  }
+
+  /* Hide arrows on mobile */
+  .carousel-arrow {
+    display: none;
+  }
+
+  .carousel-dots {
+    margin-top: 24px;
+  }
+
+  .carousel-dot.active {
+    width: 24px;
+  }
+
+  /* Mobile play button */
+  .play-button {
+    width: 56px;
+    height: 56px;
+  }
+
+  .play-button svg {
+    width: 20px;
+    height: 20px;
+  }
+
+  /* Mobile thumbnail */
+  .video-person-placeholder {
+    width: 80px;
+    height: 80px;
+  }
+
+  .video-person-placeholder svg {
+    width: 32px;
+    height: 32px;
+  }
+
+  .video-placeholder-label {
+    font-size: 10px;
+  }
+
+  /* Mobile quote */
+  .video-quote {
+    padding: 60px 16px 20px;
+  }
+
+  .video-quote-highlight {
+    padding: 2px 8px;
+    border-radius: 3px;
+    font-size: 13px;
+  }
+
+  .video-quote-text {
+    margin-bottom: 8px;
+  }
+
+  .video-reviewer {
+    gap: 6px;
+    margin-top: 8px;
+  }
+
+  .reviewer-avatar {
+    width: 22px;
+    height: 22px;
+  }
+
+  .reviewer-name {
+    font-size: 11px;
+  }
+
+  .reviewer-verified {
+    gap: 3px;
+    font-size: 10px;
+  }
+
+  .reviewer-verified svg {
+    width: 10px;
+    height: 10px;
+  }
+
+  .video-duration {
+    top: 12px;
+    right: 12px;
+    border-radius: 5px;
+    padding: 3px 8px;
+    font-size: 11px;
+  }
+
+  /* Mobile CTA */
+  .video-reviews-footer {
+    margin-top: 32px;
+    padding: 0 24px;
+  }
+
+  .video-reviews-cta {
+    display: flex;
+    justify-content: center;
+    width: 100%;
+    padding: 18px 32px;
+  }
+
+  .video-reviews-cta:hover {
+    transform: none;
+    box-shadow: none;
+  }
+}

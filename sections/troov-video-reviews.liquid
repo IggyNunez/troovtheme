@@ -1,0 +1,386 @@
+{{ 'troov-video-reviews.css' | asset_url | stylesheet_tag }}
+
+<section class="video-reviews-section" id="VideoReviews-{{ section.id }}">
+  <div class="video-reviews-container">
+
+    {%- comment -%} Header {%- endcomment -%}
+    <div class="video-reviews-header">
+      <div class="section-divider"></div>
+
+      {%- if section.settings.badge_text != blank -%}
+        <div class="video-reviews-badge">
+          <div class="vr-stars">
+            {%- for i in (1..5) -%}
+              <svg viewBox="0 0 20 20"><path d="M10 1l2.39 4.84L17.3 6.7l-3.65 3.56.86 5.03L10 13l-4.51 2.29.86-5.03L2.7 6.7l4.91-.86z"/></svg>
+            {%- endfor -%}
+          </div>
+          <span class="vr-badge-text">{{ section.settings.badge_text }}</span>
+        </div>
+      {%- endif -%}
+
+      {%- if section.settings.label != blank -%}
+        <h3 class="video-reviews-label">{{ section.settings.label }}</h3>
+      {%- endif -%}
+
+      {%- if section.settings.title != blank -%}
+        <h2 class="video-reviews-title">{{ section.settings.title }}</h2>
+      {%- endif -%}
+
+      {%- if section.settings.subtitle != blank -%}
+        <p class="video-reviews-subtitle">{{ section.settings.subtitle }}</p>
+      {%- endif -%}
+    </div>
+
+    {%- comment -%} Carousel {%- endcomment -%}
+    {%- if section.blocks.size > 0 -%}
+      <div class="carousel-wrapper">
+        <button class="carousel-arrow carousel-arrow--left hidden" aria-label="Previous" data-direction="left">
+          <svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg>
+        </button>
+        <button class="carousel-arrow carousel-arrow--right" aria-label="Next" data-direction="right">
+          <svg viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg>
+        </button>
+
+        <div class="video-carousel" id="videoCarousel-{{ section.id }}">
+          {%- for block in section.blocks -%}
+            <div class="video-card" {{ block.shopify_attributes }} data-index="{{ forloop.index0 }}">
+              {%- comment -%} Thumbnail / Video Poster {%- endcomment -%}
+              {%- if block.settings.video_url != blank -%}
+                <video
+                  class="video-card__video"
+                  src="{{ block.settings.video_url }}"
+                  poster="{%- if block.settings.thumbnail != blank -%}{{ block.settings.thumbnail | image_url: width: 600 }}{%- endif -%}"
+                  playsinline
+                  muted
+                  loop
+                  preload="metadata"
+                ></video>
+              {%- elsif block.settings.thumbnail != blank -%}
+                <img
+                  class="video-card__poster"
+                  src="{{ block.settings.thumbnail | image_url: width: 600 }}"
+                  alt="{{ block.settings.reviewer_name | default: 'Video review' }}"
+                  loading="lazy"
+                  width="300"
+                  height="467"
+                >
+              {%- else -%}
+                <div class="video-thumbnail">
+                  <div class="video-person-placeholder">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="#ccc" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                  </div>
+                  <span class="video-placeholder-label">Video {{ forloop.index }}</span>
+                </div>
+              {%- endif -%}
+
+              {%- comment -%} Duration badge {%- endcomment -%}
+              {%- if block.settings.duration != blank -%}
+                <span class="video-duration">{{ block.settings.duration }}</span>
+              {%- endif -%}
+
+              {%- comment -%} Play button {%- endcomment -%}
+              <button class="play-button" aria-label="Play video">
+                <svg viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+              </button>
+
+              {%- comment -%} Quote overlay {%- endcomment -%}
+              <div class="video-quote">
+                {%- if block.settings.quote != blank -%}
+                  <div class="video-quote-text">
+                    <span class="video-quote-highlight">{{ block.settings.quote }}</span>
+                  </div>
+                {%- endif -%}
+
+                <div class="video-reviewer">
+                  {%- if block.settings.reviewer_image != blank -%}
+                    <img
+                      class="reviewer-avatar reviewer-avatar--img"
+                      src="{{ block.settings.reviewer_image | image_url: width: 52 }}"
+                      alt="{{ block.settings.reviewer_name }}"
+                      width="26"
+                      height="26"
+                      loading="lazy"
+                    >
+                  {%- else -%}
+                    <div class="reviewer-avatar"></div>
+                  {%- endif -%}
+
+                  {%- if block.settings.reviewer_name != blank -%}
+                    <span class="reviewer-name">{{ block.settings.reviewer_name }}</span>
+                  {%- endif -%}
+
+                  {%- if block.settings.verified -%}
+                    <span class="reviewer-verified">
+                      <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
+                      Verified
+                    </span>
+                  {%- endif -%}
+                </div>
+              </div>
+            </div>
+          {%- endfor -%}
+        </div>
+
+        {%- comment -%} Dots {%- endcomment -%}
+        <div class="carousel-dots" id="carouselDots-{{ section.id }}">
+          {%- for block in section.blocks -%}
+            <button class="carousel-dot{% if forloop.first %} active{% endif %}" data-index="{{ forloop.index0 }}" aria-label="Go to slide {{ forloop.index }}"></button>
+          {%- endfor -%}
+        </div>
+      </div>
+    {%- endif -%}
+
+    {%- comment -%} CTA {%- endcomment -%}
+    {%- if section.settings.cta_text != blank -%}
+      <div class="video-reviews-footer">
+        <a href="{{ section.settings.cta_url | default: '#' }}" class="video-reviews-cta">
+          {{ section.settings.cta_text }}
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+        </a>
+      </div>
+    {%- endif -%}
+
+  </div>
+</section>
+
+<script>
+  (function() {
+    const sectionId = '{{ section.id }}';
+    const carousel = document.getElementById('videoCarousel-' + sectionId);
+    if (!carousel) return;
+
+    const section = document.getElementById('VideoReviews-' + sectionId);
+    const dots = section.querySelectorAll('.carousel-dot');
+    const arrowLeft = section.querySelector('.carousel-arrow--left');
+    const arrowRight = section.querySelector('.carousel-arrow--right');
+    const cards = carousel.querySelectorAll('.video-card');
+    const wrapper = section.querySelector('.carousel-wrapper');
+
+    if (!cards.length) return;
+
+    function getCardScroll() {
+      const style = getComputedStyle(carousel);
+      const gap = parseFloat(style.gap) || 24;
+      return cards[0].offsetWidth + gap;
+    }
+
+    function getVisibleCount() {
+      return Math.round(carousel.clientWidth / cards[0].offsetWidth);
+    }
+
+    function getTotalPages() {
+      return Math.max(1, cards.length - getVisibleCount() + 1);
+    }
+
+    function updateControls() {
+      const scrollLeft = carousel.scrollLeft;
+      const maxScroll = carousel.scrollWidth - carousel.clientWidth;
+      const cardScroll = getCardScroll();
+      const index = Math.round(scrollLeft / cardScroll);
+
+      dots.forEach(function(dot, i) {
+        dot.classList.toggle('active', i === index);
+      });
+
+      if (arrowLeft) arrowLeft.classList.toggle('hidden', scrollLeft <= 5);
+      if (arrowRight) arrowRight.classList.toggle('hidden', scrollLeft >= maxScroll - 5);
+    }
+
+    carousel.addEventListener('scroll', updateControls);
+
+    if (arrowLeft) {
+      arrowLeft.addEventListener('click', function() {
+        carousel.scrollBy({ left: -getCardScroll(), behavior: 'smooth' });
+      });
+    }
+
+    if (arrowRight) {
+      arrowRight.addEventListener('click', function() {
+        carousel.scrollBy({ left: getCardScroll(), behavior: 'smooth' });
+      });
+    }
+
+    dots.forEach(function(dot) {
+      dot.addEventListener('click', function() {
+        var index = parseInt(dot.dataset.index);
+        carousel.scrollTo({ left: index * getCardScroll(), behavior: 'smooth' });
+      });
+    });
+
+    // Video play/pause on card click
+    cards.forEach(function(card) {
+      var playBtn = card.querySelector('.play-button');
+      var video = card.querySelector('.video-card__video');
+
+      if (playBtn && video) {
+        playBtn.addEventListener('click', function(e) {
+          e.stopPropagation();
+          // Pause all other videos
+          section.querySelectorAll('.video-card__video').forEach(function(v) {
+            if (v !== video) {
+              v.pause();
+              v.closest('.video-card').classList.remove('is-playing');
+            }
+          });
+
+          if (video.paused) {
+            video.play();
+            card.classList.add('is-playing');
+          } else {
+            video.pause();
+            card.classList.remove('is-playing');
+          }
+        });
+
+        video.addEventListener('ended', function() {
+          card.classList.remove('is-playing');
+        });
+      }
+    });
+
+    // Hover play for desktop
+    if (window.matchMedia('(hover: hover)').matches) {
+      wrapper.addEventListener('mouseenter', function() {}, true);
+    }
+
+    updateControls();
+  })();
+</script>
+
+{% schema %}
+{
+  "name": "Video Reviews",
+  "tag": "section",
+  "class": "video-reviews-section-wrapper",
+  "settings": [
+    {
+      "type": "text",
+      "id": "badge_text",
+      "label": "Badge text",
+      "default": "500+ happy customers"
+    },
+    {
+      "type": "text",
+      "id": "label",
+      "label": "Section label",
+      "default": "Don't Take Our Word For It"
+    },
+    {
+      "type": "text",
+      "id": "title",
+      "label": "Section title",
+      "default": "Real People.<br>Real Results."
+    },
+    {
+      "type": "text",
+      "id": "subtitle",
+      "label": "Subtitle",
+      "default": "Hear from real customers who made the switch to Troov."
+    },
+    {
+      "type": "text",
+      "id": "cta_text",
+      "label": "CTA button text",
+      "default": "Try Troov Today"
+    },
+    {
+      "type": "url",
+      "id": "cta_url",
+      "label": "CTA button link"
+    }
+  ],
+  "blocks": [
+    {
+      "type": "video",
+      "name": "Video Card",
+      "limit": 12,
+      "settings": [
+        {
+          "type": "text",
+          "id": "video_url",
+          "label": "Video URL",
+          "info": "Direct URL to an MP4 video file or hosted video."
+        },
+        {
+          "type": "image_picker",
+          "id": "thumbnail",
+          "label": "Video thumbnail"
+        },
+        {
+          "type": "text",
+          "id": "duration",
+          "label": "Video duration",
+          "default": "0:45",
+          "info": "E.g. 0:45, 1:12"
+        },
+        {
+          "type": "text",
+          "id": "quote",
+          "label": "Review quote",
+          "default": "\"Best pre-workout I've ever tried — no crash, no jitters.\""
+        },
+        {
+          "type": "text",
+          "id": "reviewer_name",
+          "label": "Reviewer name",
+          "default": "@reviewer"
+        },
+        {
+          "type": "image_picker",
+          "id": "reviewer_image",
+          "label": "Reviewer avatar"
+        },
+        {
+          "type": "checkbox",
+          "id": "verified",
+          "label": "Show verified badge",
+          "default": true
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "Video Reviews",
+      "blocks": [
+        {
+          "type": "video",
+          "settings": {
+            "duration": "0:45",
+            "quote": "\"Best pre-workout I've ever tried — no crash, no jitters.\"",
+            "reviewer_name": "@reviewer_one",
+            "verified": true
+          }
+        },
+        {
+          "type": "video",
+          "settings": {
+            "duration": "1:12",
+            "quote": "\"I replaced my energy drinks with Troov and never looked back.\"",
+            "reviewer_name": "@reviewer_two",
+            "verified": true
+          }
+        },
+        {
+          "type": "video",
+          "settings": {
+            "duration": "0:58",
+            "quote": "\"Clean energy that actually tastes amazing. Total game changer!\"",
+            "reviewer_name": "@reviewer_three",
+            "verified": true
+          }
+        },
+        {
+          "type": "video",
+          "settings": {
+            "duration": "0:32",
+            "quote": "\"Smooth energy all day — I use it for work and workouts.\"",
+            "reviewer_name": "@reviewer_four",
+            "verified": true
+          }
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}
