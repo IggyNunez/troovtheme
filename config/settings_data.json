@@ -1874,20 +1874,10 @@
           "video_zDtLTh": {
             "type": "video",
             "settings": {
-              "video_url": "",
+              "video_url": "https://cdn.shopify.com/videos/c/o/v/419a835ef0cd42c0b98e3eb65df13ea3.mp4",
               "duration": "0:45",
               "quote": "\"Best pre-workout I've ever tried — no crash, no jitters.\"",
               "reviewer_name": "@reviewer",
-              "verified": true
-            }
-          },
-          "video_CymAyH": {
-            "type": "video",
-            "settings": {
-              "video_url": "https://cdn.shopify.com/videos/c/o/v/419a835ef0cd42c0b98e3eb65df13ea3.mp4",
-              "duration": "0:58",
-              "quote": "",
-              "reviewer_name": "@reviewer_three",
               "verified": true
             }
           }
@@ -1896,8 +1886,7 @@
           "video_pABWa8",
           "video_chKzpU",
           "video_WQqXyX",
-          "video_zDtLTh",
-          "video_CymAyH"
+          "video_zDtLTh"
         ],
         "name": "Video Reviews",
         "settings": {
