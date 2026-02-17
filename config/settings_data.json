@@ -1938,7 +1938,7 @@
         ],
         "name": "Dynamic Hero",
         "settings": {
-          "height_desktop": "auto",
+          "height_desktop": "100vh",
           "height_mobile": "60vh",
           "content_position": "left",
           "image_position": "right",
