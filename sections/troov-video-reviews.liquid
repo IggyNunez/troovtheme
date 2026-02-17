@@ -51,7 +51,6 @@
                   src="{{ block.settings.video_url }}"
                   poster="{%- if block.settings.thumbnail != blank -%}{{ block.settings.thumbnail | image_url: width: 600 }}{%- endif -%}"
                   playsinline
-                  muted
                   loop
                   preload="metadata"
                 ></video>
